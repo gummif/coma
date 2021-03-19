@@ -3,7 +3,7 @@ name: Ubuntu
 on: [push, pull_request]
 
 jobs:
-  gcc_build:
+  build_gcc10:
     runs-on: ubuntu-latest
 
     steps:
