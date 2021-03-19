@@ -21,27 +21,30 @@ add_test(NAME tests COMMAND tests)
 
 # example code TODO cleanup
 
-add_executable(
-    mytest
-    mytest.cpp
-)
-target_link_libraries(
-    mytest
-    PRIVATE coma ${CMAKE_THREAD_LIBS_INIT}
-)
-# need to manually build and install libc++ to use clang with coroutines
-target_compile_options(mytest PRIVATE
-    -fcoroutines
-    -fsanitize=address
-    -fno-omit-frame-pointer
-    -I/home/gummi/forr/asio/asio/include
-    -Wall -Wextra -Winit-self -Wreorder)
-target_link_options(mytest PRIVATE -fsanitize=address -fno-omit-frame-pointer)
-target_compile_definitions(mytest PRIVATE
-    ASIO_HAS_CO_AWAIT
-    ASIO_HAS_STD_COROUTINE
-    ASIO_NO_DEPRECATED
-    ASIO_NO_TS_EXECUTORS)
-set_property(TARGET mytest PROPERTY CXX_STANDARD 20)
+if(false)
+  add_executable(
+      mytest
+      mytest.cpp
+  )
+  target_link_libraries(
+      mytest
+      PRIVATE coma ${CMAKE_THREAD_LIBS_INIT}
+  )
+  # need to manually build and install libc++ to use clang with coroutines
+  target_compile_options(mytest PRIVATE
+      -fcoroutines
+      -fsanitize=address
+      -fno-omit-frame-pointer
+      -I/home/gummi/forr/asio/asio/include
+      -Wall -Wextra -Winit-self -Wreorder)
+  target_link_options(mytest PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+  target_compile_definitions(mytest PRIVATE
+      ASIO_HAS_CO_AWAIT
+      ASIO_HAS_STD_COROUTINE
+      ASIO_NO_DEPRECATED
+      ASIO_NO_TS_EXECUTORS)
+  set_property(TARGET mytest PROPERTY CXX_STANDARD 20)
+
+endif()
 
 # gcc --std=c++20 -fcoroutines -I../../../asio/asio/include -DASIO_HAS_CO_AWAIT -DASIO_HAS_STD_COROUTINE -Wall -Wextra co_timer.cpp -lstdc++ -pthread -lm -lrt

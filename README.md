@@ -1,4 +1,4 @@
-# coma
+# `coma`
 
 This library contains async/coroutine/concurrency primatives for C++20. It extends and is based on the standard library and Boost.ASIO. Utilities include RAII guards for semaphores, async semaphores and async condition variables.
 
@@ -22,7 +22,7 @@ boost::asio::awaitable<int> get_anwser();
 boost::asio::awaitable<int> f()
 {
     auto g = co_await coma::async_acq_rel_guard(sem);
-    return co_await get_anwser(); // may throw
+    co_return co_await get_anwser(); // may throw
 }
 ```
 
