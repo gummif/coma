@@ -7,24 +7,37 @@ This library contains async/coroutine/concurrency primatives for C++20. It exten
 Blocking semaphores with RAII guard
 ```c++
 std::counting_semaphore<10> sem{10};
-int get_answer();
+int get_answer(); // may throw
+
 int f()
 {
-    coma::acq_rel_guard g{sem};
-    return get_answer(); // may throw
+    coma::acquire_guard g{sem};
+    return get_answer();
 }
 ```
 
 Async semaphores with RAII guard
 ```c++
 coma::async_semaphore sem{10};
-boost::asio::awaitable<int> get_answer();
+boost::asio::awaitable<int> get_answer(); // may throw
+
 boost::asio::awaitable<int> f()
 {
-    auto g = co_await coma::async_acq_rel_guard(sem);
-    co_return co_await get_answer(); // may throw
+    auto g = co_await coma::async_acquire_guard(sem);
+    co_return co_await get_answer();
 }
 ```
 
 ## Synopsis
 
+```c++
+// The semaphore equivalent of std::lock_guard
+// using acquire/release instead of lock/unlock.
+template<class Semaphore>
+class acquire_guard;
+```
+```c++
+// The semaphore equivalent of std::unique_lock
+template<class Semaphore>
+class unique_acquire_guard;
+```

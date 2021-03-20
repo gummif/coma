@@ -1,4 +1,4 @@
-#include <coma/acq_rel_guard.hpp>
+#include <coma/acquire_guard.hpp>
 
 #include <cassert>
 #include <cinttypes>

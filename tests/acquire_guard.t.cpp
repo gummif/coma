@@ -1,7 +1,7 @@
-#include <coma/acq_rel_guard.hpp>
+#include <coma/acquire_guard.hpp>
 #include <catch2/catch.hpp>
 
-TEST_CASE("acq_rel_guard", "[acq_rel_guard]") {
+TEST_CASE("acquire_guard", "[acquire_guard]") {
 
     struct dummy
     {
@@ -12,13 +12,13 @@ TEST_CASE("acq_rel_guard", "[acq_rel_guard]") {
 
     CHECK(d.n == 1);
     {
-        coma::acq_rel_guard g{d};
+        coma::acquire_guard g{d};
         CHECK(d.n == 0);
     }
     CHECK(d.n == 1);
 
     {
-        coma::acq_rel_guard g{d, coma::adapt_acquire};
+        coma::acquire_guard g{d, coma::adapt_acquire};
         CHECK(d.n == 1);
     }
     CHECK(d.n == 2);
