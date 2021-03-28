@@ -67,7 +67,7 @@ public:
     awaitable<std::optional<T>> try_pop_for(auto timeout)
     {
         if (!co_await cv.async_wait_for(timeout, [&] { return !q.empty(); })))
-            return std::nullopt;
+            co_return std::nullopt;
         auto item = std::move(q.front());
         q.pop_front();
         co_return item;
@@ -112,7 +112,7 @@ public:
         });
     }
 private:
-    stranded<async_queue> st;
+    coma::stranded<async_queue> st;
 };
 ```
 
@@ -158,9 +158,9 @@ There are a few variant of semaphores and condition variables where there is a t
 
 We can try to classify functions that do multi-thread or multi-task synchronization into:
 
-* *Async/asynchronous*: Deferred function continuation. Can be
-    * deferred blocking (`awaitable<void> async_lock()`)
-    * deferred non-blocking  (`awaitable<bool> async_try_lock()`)
+* *Async/asynchronous*: Possibly deferred function continuation. Can be
+    * possibly deferred blocking (`awaitable<void> async_lock()`)
+    * possibly deferred non-blocking  (`awaitable<bool> async_try_lock()`)
 * *Synchronous*: Inline function completion. Can be
     * blocking (`void lock()`) or 
     * non-blocking (`bool try_lock()`).
