@@ -13,14 +13,14 @@ endif()
 
 find_package(Threads)
 
-# tests
 add_executable(tests
   main.t.cpp
   acquire_guard.t.cpp
   unique_acquire_guard.t.cpp
+  async_seq_cond_var.t.cpp
+  stranded.t.cpp
   )
 target_link_libraries(tests PRIVATE coma Catch2::Catch2 ${CMAKE_THREAD_LIBS_INIT})
-set_property(TARGET tests PROPERTY CXX_STANDARD 20) # TODO do not set
 target_compile_options(tests PRIVATE
   -fcoroutines
   -fsanitize=address
