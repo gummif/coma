@@ -1,26 +1,17 @@
-# `coma`
+# coma
 
 This library contains async/coroutine/concurrency primatives for C++20 built on Boost.ASIO. Utilities include RAII guards for semaphores, async semaphores, async condition variables and async thread-safe wrappers and handles.
 
 The library provides:
 * `coma::acquire_guard` and `coma::unique_acquire_guard` for semaphores, equivalent to `std::lock_guard` and `std::unique_lock` for mutexes.
+
+And currently experimental:
 * `coma::async_semaphore` and `coma::async_timed_semaphore` (and `*_mt` variants) semaphores with async APIs.
 * `coma::async_cond_var` and `coma::async_timed_cond_var` condition variables with async APIs.
 * `coma::stranded` thread-safe async wrapper of values through a strand (similar to proposed `std::synchronized_value`).
+* `coma::co_lift` a higher-order function to lift regular functions `R()` into `awaitable<R>()`.
 
 ## Examples
-
-Blocking semaphore with RAII guard
-```c++
-std::counting_semaphore<10> sem{10};
-int get_answer(); // may throw
-
-int f()
-{
-    coma::acquire_guard g{sem};
-    return get_answer();
-}
-```
 
 Async semaphore with RAII guard
 ```c++
@@ -43,7 +34,7 @@ awaitable<int> f()
 {
     if (!co_await sem.async_acquire_for(1s))
         throw std::runtime_error("timeout");
-    coma::acquire_guard g{sem, adapt_acquire};
+    coma::acquire_guard g{sem, coma::adapt_acquire};
     co_return co_await get_answer();
 }
 ```
@@ -57,14 +48,14 @@ public:
     using executor_type = typename coma::async_timed_cond_var::executor_type;
     explicit async_queue(const executor_type& ex) : cv{ex}
     {}
-    awaitable<T> pop()
+    awaitable<T> async_pop()
     {
         co_await cv.async_wait([&] { return !q.empty(); }));
         auto item = std::move(q.front());
         q.pop_front();
         co_return item;
     }
-    awaitable<std::optional<T>> try_pop_for(auto timeout)
+    awaitable<std::optional<T>> async_try_pop_for(auto timeout)
     {
         if (!co_await cv.async_wait_for(timeout, [&] { return !q.empty(); })))
             co_return std::nullopt;
@@ -93,22 +84,25 @@ public:
     using executor_type = typename async_queue::executor_type;
     explicit async_queue_mt(const executor_type& ex) : st{ex, std::in_place, ex}
     {}
-    awaitable<T> pop()
+    awaitable<T> async_pop()
     {
-        return st.invoke([](auto& cv) { return cv.pop(); });
+        return st.invoke([](auto& q) { return q.async_pop(); });
+        // NOTE this is the non-coroutine "awaitable backwarding" variant of
+        // co_return co_await st.invoke([](auto& q) -> awaitable<T> {
+        //   co_return co_await q.async_pop(); });
     }
-    awaitable<std::optional<T>> try_pop_for(auto timeout)
+    awaitable<std::optional<T>> async_try_pop_for(auto timeout)
     {
-        return st.invoke([timeout](auto& cv)
+        return st.invoke([timeout](auto& q)
         {
-            return cv.try_pop_for(timeout);
+            return q.async_try_pop_for(timeout);
         });
     }
-    awaitable<void> push(T item)
+    awaitable<void> async_push(T item)
     {
-        return st.invoke([item = std::move(item)](auto& cv) mutable
+        return st.invoke([item = std::move(item)](auto& q) mutable
         {
-            cv.push(std::move(item));
+            q.push(std::move(item));
         });
     }
 private:
@@ -168,6 +162,13 @@ We can try to classify functions that do multi-thread or multi-task synchronizat
 Async vs sync in general says nothing of the thread-safety of a function. Functions in this library should be considered non-thread-safe unless specified otherwise. Classes with a `_mt` suffix provide a thread-safe API.
 
 ## Synopsis
+
+### `coma::async_cond_var`
+```c++
+template<class Executor>
+class async_cond_var;
+```
+A non-thread-safe async condition variable with FIFO ordering and without spurious wakening.
 
 ### `coma::acquire_guard`
 ```c++

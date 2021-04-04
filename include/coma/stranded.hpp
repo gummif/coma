@@ -1,3 +1,6 @@
+#pragma once
+
+#include <coma/co_lift.hpp>
 #include <cassert>
 #include <utility>
 #include <functional>
@@ -40,9 +43,8 @@ public:
     auto invoke(F&& f, Token&& token = asio::use_awaitable)
     {
         return asio::co_spawn(m_strand,
-            [this, f = std::forward<F>(f)]() mutable -> asio::awaitable<typename FR::value_type> {
-                co_return co_await std::invoke(std::move(f), m_value);
-            }, std::forward<Token>(token));
+            std::invoke(std::forward<F>(f), m_value),
+            std::forward<Token>(token));
     }
 
     template<class F, class Token = const asio::use_awaitable_t<>&, class FR = std::invoke_result_t<F, T&>>
@@ -51,9 +53,8 @@ public:
     auto invoke(F&& f, Token&& token = asio::use_awaitable)
     {
         return asio::co_spawn(m_strand,
-            [this, f = std::forward<F>(f)]() mutable -> asio::awaitable<FR> {
-                co_return std::invoke(std::move(f), m_value);
-            }, std::forward<Token>(token));
+            co_lift([this, f = (F&&)f]() mutable { return std::move(f)(m_value); }),
+            std::forward<Token>(token));
     }
 
 private:

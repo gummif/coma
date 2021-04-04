@@ -1,3 +1,5 @@
+#pragma once
+
 #include <coma/guard_tags.hpp>
 
 #include <cassert>
@@ -9,41 +11,41 @@ namespace coma
 {
 
 // Call release on semaphore at scope exit if owns acquire
-template<class Sem>
+template<class Semaphore>
 class unique_acquire_guard
 {
 public:
-    using semaphore_type = Sem;
+    using semaphore_type = Semaphore;
 
     unique_acquire_guard() {}
 
-    [[nodiscard]] explicit unique_acquire_guard(Sem& sem)
+    [[nodiscard]] explicit unique_acquire_guard(Semaphore& sem)
         : m_sem{&sem}
     {
         m_sem->acquire();
         m_active = true;
     }
 
-    [[nodiscard]] unique_acquire_guard(Sem& sem, defer_acquire_t) noexcept
+    [[nodiscard]] unique_acquire_guard(Semaphore& sem, defer_acquire_t) noexcept
         : m_sem{&sem}
         , m_active{false}
     {
     }
 
-    [[nodiscard]] unique_acquire_guard(Sem& sem, try_to_acquire_t) noexcept
+    [[nodiscard]] unique_acquire_guard(Semaphore& sem, try_to_acquire_t) noexcept
         : m_sem{&sem}
     {
         m_active = m_sem->try_acquire();
     }
 
-    [[nodiscard]] unique_acquire_guard(Sem& sem, adapt_acquire_t)
+    [[nodiscard]] unique_acquire_guard(Semaphore& sem, adapt_acquire_t)
         : m_sem{&sem}
         , m_active{true}
     {
     }
 
     template<class Rep, class Period>
-    [[nodiscard]] unique_acquire_guard(Sem& sem,
+    [[nodiscard]] unique_acquire_guard(Semaphore& sem,
         const std::chrono::duration<Rep,Period>& timeout_duration)
         : m_sem{&sem}
     {
@@ -51,7 +53,7 @@ public:
     }
 
     template<class Clock, class Duration>
-    [[nodiscard]] unique_acquire_guard(Sem& sem,
+    [[nodiscard]] unique_acquire_guard(Semaphore& sem,
         const std::chrono::time_point<Clock,Duration>& timeout_time)
         : m_sem{&sem}
     {
@@ -84,15 +86,10 @@ public:
 
     void release()
     {
-        if (m_sem && m_active)
-        {
-            m_sem->release();
-            m_active = false;
-        }
-        else
-        {
+        if (!owns_acquire())
             throw std::system_error(std::errc::operation_not_permitted);
-        }
+        m_sem->release();
+        m_active = false;
     }
 
     void swap(unique_acquire_guard& other) noexcept
@@ -115,7 +112,7 @@ public:
     explicit operator bool() const noexcept { return owns_acquire(); }
 
 private:
-    Sem* m_sem{nullptr};
+    Semaphore* m_sem{nullptr};
     bool m_active{false};
 };
 

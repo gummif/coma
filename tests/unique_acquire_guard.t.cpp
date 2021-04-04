@@ -1,5 +1,5 @@
 #include <coma/unique_acquire_guard.hpp>
-#include <catch2/catch.hpp>
+#include <test_util.hpp>
 
 TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
 

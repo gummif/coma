@@ -1,3 +1,5 @@
+#pragma once
+
 #include <coma/acquire_guard.hpp>
 
 #include <cassert>

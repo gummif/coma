@@ -13,48 +13,29 @@ endif()
 
 find_package(Threads)
 
-add_executable(tests
-  main.t.cpp
-  acquire_guard.t.cpp
-  unique_acquire_guard.t.cpp
-  async_seq_cond_var.t.cpp
-  stranded.t.cpp
-  )
-target_link_libraries(tests PRIVATE coma Catch2::Catch2 ${CMAKE_THREAD_LIBS_INIT})
-target_compile_options(tests PRIVATE
-  -fcoroutines
-  -fsanitize=address
-  -fno-omit-frame-pointer
-  -Wall -Wextra -Winit-self -Wreorder)
-target_link_options(tests PRIVATE -fsanitize=address -fno-omit-frame-pointer)
-add_test(NAME tests COMMAND tests)
+function(coma_add_test TESTNAME)
+  add_executable(test_${TESTNAME}
+    ${TESTNAME}.t.cpp
+    )
+  target_include_directories(test_${TESTNAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(test_${TESTNAME} PRIVATE coma Catch2::Catch2WithMain ${CMAKE_THREAD_LIBS_INIT})
+  target_compile_options(test_${TESTNAME} PRIVATE
+    -fcoroutines
+    -fsanitize=address
+    -fno-omit-frame-pointer
+    -Wall -Wextra -Winit-self -Wreorder)
+  #target_compile_definitions(mytest PRIVATE
+  #  ASIO_HAS_CO_AWAIT
+  #  ASIO_HAS_STD_COROUTINE
+  #  ASIO_NO_DEPRECATED
+  #  ASIO_NO_TS_EXECUTORS)
+  target_link_options(test_${TESTNAME} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+  add_test(NAME test_${TESTNAME} COMMAND test_${TESTNAME})
+endfunction()
 
-# example code TODO cleanup
-
-if(false)
-  add_executable(
-      mytest
-      mytest.cpp
-  )
-  target_link_libraries(
-      mytest
-      PRIVATE coma ${CMAKE_THREAD_LIBS_INIT}
-  )
-  # need to manually build and install libc++ to use clang with coroutines
-  target_compile_options(mytest PRIVATE
-      -fcoroutines
-      -fsanitize=address
-      -fno-omit-frame-pointer
-      -I/home/gummi/forr/asio/asio/include
-      -Wall -Wextra -Winit-self -Wreorder)
-  target_link_options(mytest PRIVATE -fsanitize=address -fno-omit-frame-pointer)
-  target_compile_definitions(mytest PRIVATE
-      ASIO_HAS_CO_AWAIT
-      ASIO_HAS_STD_COROUTINE
-      ASIO_NO_DEPRECATED
-      ASIO_NO_TS_EXECUTORS)
-  set_property(TARGET mytest PROPERTY CXX_STANDARD 20)
-
-endif()
-
-# gcc --std=c++20 -fcoroutines -I../../../asio/asio/include -DASIO_HAS_CO_AWAIT -DASIO_HAS_STD_COROUTINE -Wall -Wextra co_timer.cpp -lstdc++ -pthread -lm -lrt
+coma_add_test(acquire_guard)
+coma_add_test(unique_acquire_guard)
+coma_add_test(async_cond_var)
+coma_add_test(async_timed_cond_var)
+coma_add_test(stranded)
+coma_add_test(co_lift)
