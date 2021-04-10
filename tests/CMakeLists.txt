@@ -14,12 +14,12 @@ endif()
 find_package(Threads)
 
 function(coma_add_test TESTNAME)
-  add_executable(test_${TESTNAME}
-    ${TESTNAME}.t.cpp
-    )
+  add_executable(test_${TESTNAME} ${TESTNAME}.t.cpp)
   target_include_directories(test_${TESTNAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
   target_link_libraries(test_${TESTNAME} PRIVATE coma Catch2::Catch2WithMain ${CMAKE_THREAD_LIBS_INIT})
   target_compile_options(test_${TESTNAME} PRIVATE
+    # TODO fix this include
+    -I/home/gummi/boost/boost_1_75_0
     -fcoroutines
     -fsanitize=address
     -fno-omit-frame-pointer
@@ -30,7 +30,7 @@ function(coma_add_test TESTNAME)
   #  ASIO_NO_DEPRECATED
   #  ASIO_NO_TS_EXECUTORS)
   target_link_options(test_${TESTNAME} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
-  add_test(NAME test_${TESTNAME} COMMAND test_${TESTNAME})
+  add_test(NAME ${TESTNAME} COMMAND test_${TESTNAME})
 endfunction()
 
 coma_add_test(acquire_guard)

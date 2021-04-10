@@ -4,10 +4,10 @@
 #include <cassert>
 #include <utility>
 #include <functional>
-#include <asio/strand.hpp>
-#include <asio/co_spawn.hpp>
-#include <asio/awaitable.hpp>
-#include <asio/use_awaitable.hpp>
+#include <boost/asio/strand.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/use_awaitable.hpp>
 
 namespace coma
 {
@@ -16,7 +16,7 @@ namespace detail
     template<class T>
     struct is_awaitable : std::false_type {};
     template<class U, class E>
-    struct is_awaitable<asio::awaitable<U, E>> : std::true_type {};
+    struct is_awaitable<boost::asio::awaitable<U, E>> : std::true_type {};
 }
 
 template<class T, class Executor>
@@ -37,28 +37,28 @@ public:
         , m_value(std::forward<Args>(args)...)
     {}
 
-    template<class F, class Token = const asio::use_awaitable_t<>&, class FR = std::invoke_result_t<F, T&>>
+    template<class F, class Token = const boost::asio::use_awaitable_t<>&, class FR = std::invoke_result_t<F, T&>>
         requires(detail::is_awaitable<FR>::value)
     [[nodiscard]]
-    auto invoke(F&& f, Token&& token = asio::use_awaitable)
+    auto invoke(F&& f, Token&& token = boost::asio::use_awaitable)
     {
-        return asio::co_spawn(m_strand,
+        return boost::asio::co_spawn(m_strand,
             std::invoke(std::forward<F>(f), m_value),
             std::forward<Token>(token));
     }
 
-    template<class F, class Token = const asio::use_awaitable_t<>&, class FR = std::invoke_result_t<F, T&>>
+    template<class F, class Token = const boost::asio::use_awaitable_t<>&, class FR = std::invoke_result_t<F, T&>>
         requires(!detail::is_awaitable<FR>::value)
     [[nodiscard]]
-    auto invoke(F&& f, Token&& token = asio::use_awaitable)
+    auto invoke(F&& f, Token&& token = boost::asio::use_awaitable)
     {
-        return asio::co_spawn(m_strand,
+        return boost::asio::co_spawn(m_strand,
             co_lift([this, f = (F&&)f]() mutable { return std::move(f)(m_value); }),
             std::forward<Token>(token));
     }
 
 private:
-    asio::strand<executor_type> m_strand;
+    boost::asio::strand<executor_type> m_strand;
     value_type m_value;
 };
 

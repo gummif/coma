@@ -5,15 +5,15 @@
 
 TEST_CASE("co_lift", "[co_lift]")
 {
-    asio::io_context ctx;
+    boost::asio::io_context ctx;
     std::vector<int> v;
 
-    asio::co_spawn(ctx, coma::co_lift([&]
+    boost::asio::co_spawn(ctx, coma::co_lift([&]
     {
         v.push_back(42);
-    }), asio::detached);
+    }), boost::asio::detached);
 
-    asio::co_spawn(ctx, [&]() -> asio::awaitable<void>
+    boost::asio::co_spawn(ctx, [&]() -> boost::asio::awaitable<void>
     {
         TEST_LOG("before await");
         auto val = co_await coma::co_lift([&, l = coma::logged()]()
@@ -31,7 +31,7 @@ TEST_CASE("co_lift", "[co_lift]")
         });
         TEST_LOG("after await");
         CHECK(val == 2);
-    }, asio::detached);
+    }, boost::asio::detached);
 
     ctx.run();
 

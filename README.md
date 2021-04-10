@@ -187,8 +187,8 @@ The semaphore equivalent of `std::unique_lock` using acquire/release instead of 
 ### `coma::async_acquire_guard`
 ```c++
 template<class Semaphore>
-boost::asio::awaitable<acquire_guard>
-  async_acquire_guard(Semaphore& sem);
+auto async_acquire_guard(Semaphore& sem)
+    -> awaitable<acquire_guard>;
 ```
 Acquire semaphore using `sem.async_acquire()` and return an `acquire_guard` (async RAII). Equivalent to `co_await sem.async_acquire()` followed by `acquire_guard(sem, adapt_acquire)`.
 

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <asio/basic_waitable_timer.hpp>
-#include <asio/co_spawn.hpp>
-#include <asio/awaitable.hpp>
-#include <asio/use_awaitable.hpp>
-#include <asio/redirect_error.hpp>
+#include <boost/asio/basic_waitable_timer.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/use_awaitable.hpp>
+#include <boost/asio/redirect_error.hpp>
 #include <set>
 
 namespace coma
@@ -31,8 +31,8 @@ template<class Executor>
 class async_timed_cond_var
 {
     using clock = std::chrono::steady_clock;
-    using timer = asio::basic_waitable_timer<
-        clock, asio::wait_traits<clock>, Executor>;
+    using timer = boost::asio::basic_waitable_timer<
+        clock, boost::asio::wait_traits<clock>, Executor>;
 public:
     using executor_type = Executor;
     using clock_type = typename timer::clock_type;
@@ -54,24 +54,24 @@ public:
     async_timed_cond_var& operator=(async_timed_cond_var&&) = delete;
 
     [[nodiscard]]
-    asio::awaitable<void> async_wait()
+    boost::asio::awaitable<void> async_wait()
     {
-        asio::error_code ec;
-        co_await m_timer.async_wait(asio::redirect_error(asio::use_awaitable, ec));
-        if (ec && ec != asio::error::operation_aborted)
-            throw asio::system_error(ec);
+        boost::system::error_code ec;
+        co_await m_timer.async_wait(boost::asio::redirect_error(boost::asio::use_awaitable, ec));
+        if (ec && ec != boost::asio::error::operation_aborted)
+            throw boost::system::system_error(ec);
     }
 
     template<class Predicate>
     [[nodiscard]]
-    asio::awaitable<void> async_wait(Predicate pred)
+    boost::asio::awaitable<void> async_wait(Predicate pred)
     {
         while (!pred())
             co_await async_wait();
     }
 
     [[nodiscard]]
-    asio::awaitable<cv_status> async_wait_until(time_point endtime)
+    boost::asio::awaitable<cv_status> async_wait_until(time_point endtime)
     {
         auto it = m_times.insert(endtime);
         detail::at_scope_exit se{[&] { m_times.erase(it); }};
@@ -87,7 +87,7 @@ public:
 
     template<class Predicate>
     [[nodiscard]]
-    asio::awaitable<bool> async_wait_until(time_point endtime, Predicate pred)
+    boost::asio::awaitable<bool> async_wait_until(time_point endtime, Predicate pred)
     {
         while (!pred())
         {
@@ -99,14 +99,14 @@ public:
     }
 
     [[nodiscard]]
-    asio::awaitable<cv_status> async_wait_for(duration dur)
+    boost::asio::awaitable<cv_status> async_wait_for(duration dur)
     {
         return async_wait_until(clock_type::now() + dur);
     }
 
     template<class Predicate>
     [[nodiscard]]
-    asio::awaitable<bool> async_wait_for(duration dur, Predicate pred)
+    boost::asio::awaitable<bool> async_wait_for(duration dur, Predicate pred)
     {
         return async_wait_until(clock_type::now() + dur, std::move(pred));
     }
