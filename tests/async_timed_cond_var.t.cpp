@@ -1,3 +1,4 @@
+#if defined(COMA_ENABLE_COROUTINE_TESTS)
 #include <coma/async_timed_cond_var.hpp>
 #include <coma/co_lift.hpp>
 #include <test_util.hpp>
@@ -110,3 +111,5 @@ TEST_CASE("async_timed_cond_var wait many pred", "[async_timed_cond_var]")
     ctx.run();
     CHECK(done == 3);
 }
+
+#endif // defined(COMA_ENABLE_COROUTINE_TESTS)

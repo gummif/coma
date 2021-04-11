@@ -11,7 +11,7 @@ target_include_directories(coma INTERFACE
   $<INSTALL_INTERFACE:include>)
 
 if(${COMA_ENABLE_TESTS})
-  message(INFO ${COMA_TESTS_BOOST_INC_DIR})
+  message("Boost include dir: " ${COMA_TESTS_BOOST_INC_DIR})
   enable_testing()
   add_subdirectory(tests)
 endif()

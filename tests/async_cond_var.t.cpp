@@ -1,17 +1,18 @@
 #include <coma/async_cond_var.hpp>
 #include <coma/co_lift.hpp>
 #include <test_util.hpp>
-#include <iostream>
-
-using boost::asio::awaitable;
-using boost::asio::use_awaitable;
-using cond_var = boost::asio::use_awaitable_t<>::as_default_on_t<coma::async_cond_var<>>;
 
 TEST_CASE("async_cond_var ctor", "[async_cond_var]")
 {
     boost::asio::io_context ctx;
     coma::async_cond_var cv{ctx.get_executor()};
 }
+
+#if defined(COMA_ENABLE_COROUTINE_TESTS)
+
+using boost::asio::awaitable;
+using boost::asio::use_awaitable;
+using cond_var = boost::asio::use_awaitable_t<>::as_default_on_t<coma::async_cond_var<>>;
 
 TEST_CASE("async_cond_var wait", "[async_cond_var]")
 {
@@ -114,3 +115,5 @@ TEST_CASE("async_cond_var wait many pred", "[async_cond_var]")
     ctx.run();
     CHECK(done == 3);
 }
+
+#endif // defined(COMA_ENABLE_COROUTINE_TESTS)

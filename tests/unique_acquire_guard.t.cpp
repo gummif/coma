@@ -1,14 +1,38 @@
 #include <coma/unique_acquire_guard.hpp>
 #include <test_util.hpp>
 
+struct dummy
+{
+    int n;
+
+    void acquire() { --n; }
+    bool try_acquire() {
+        if (n) {
+            --n;
+            return true;
+        }
+        return false;
+    }
+    template<class T>
+    bool try_acquire_for(T t) {
+        return try_acquire_until(defclock::now() + t);
+    }
+    template<class T>
+    bool try_acquire_until(T t) {
+        while (n == 0 && defclock::now() < t)
+            std::this_thread::sleep_for(std::chrono::milliseconds{1});
+        if (n) {
+            --n;
+            return true;
+        }
+        return false;
+    }
+    void release() { ++n; }
+};
+
 TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
 
-    struct dummy
-    {
-        int n = 1;
-        void acquire() { --n; }
-        void release() { ++n; }
-    } d;
+    dummy d{1};
 
     CHECK(d.n == 1);
     {
@@ -58,4 +82,55 @@ TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
         CHECK(d.n == 2);
     }
     CHECK(d.n == 2);
+
+    {
+        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        CHECK_THROWS_AS(g.release(), std::system_error);
+        g.acquire();
+        CHECK(d.n == 1);
+    }
+    CHECK(d.n == 2);
+
+    {
+        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        CHECK(g.try_acquire() == true);
+        CHECK(d.n == 1);
+    }
+    CHECK(d.n == 2);
+
+    {
+        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        CHECK(g.try_acquire_for(std::chrono::seconds{1}) == true);
+        CHECK(d.n == 1);
+    }
+    CHECK(d.n == 2);
+
+    {
+        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        CHECK(g.try_acquire_until(defclock::now() + std::chrono::seconds{1}) == true);
+        CHECK(d.n == 1);
+    }
+    CHECK(d.n == 2);
+
+    d.n = 0;
+    {
+        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        CHECK(g.try_acquire() == false);
+        CHECK(d.n == 0);
+    }
+    CHECK(d.n == 0);
+
+    {
+        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        CHECK(g.try_acquire_for(std::chrono::milliseconds{1}) == false);
+        CHECK(d.n == 0);
+    }
+    CHECK(d.n == 0);
+
+    {
+        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        CHECK(g.try_acquire_until(defclock::now() + std::chrono::milliseconds{1}) == false);
+        CHECK(d.n == 0);
+    }
+    CHECK(d.n == 0);
 }

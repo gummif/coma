@@ -17,7 +17,7 @@ class unique_acquire_guard
 public:
     using semaphore_type = Semaphore;
 
-    unique_acquire_guard() {}
+    unique_acquire_guard() noexcept = default;
 
     [[nodiscard]] explicit unique_acquire_guard(Semaphore& sem)
         : m_sem{&sem}
@@ -67,7 +67,7 @@ public:
         , m_active{std::exchange(o.m_active, false)}
     {}
 
-    ~unique_acquire_guard() noexcept
+    ~unique_acquire_guard()
     {
         if (m_sem && m_active)
             m_sem->release();
@@ -84,10 +84,55 @@ public:
         return *this;
     };
 
+    void acquire()
+    {
+        if (!m_sem)
+            throw_system_error(std::errc::operation_not_permitted, "unique_acquire_guard::acquire(): no associated semaphore");
+        if (m_active)
+            throw_system_error(std::errc::resource_deadlock_would_occur, "unique_acquire_guard::acquire(): already owns acquire");
+        m_sem->acquire();
+        m_active = true;
+    }
+
+    [[nodiscard]]
+    bool try_acquire()
+    {
+        if (!m_sem)
+            throw_system_error(std::errc::operation_not_permitted, "unique_acquire_guard::try_acquire(): no associated semaphore");
+        if (m_active)
+            throw_system_error(std::errc::resource_deadlock_would_occur, "unique_acquire_guard::try_acquire(): already owns acquire");
+        m_active = m_sem->try_acquire();
+        return m_active;
+    }
+
+    template<class Rep, class Period>
+    [[nodiscard]]
+    bool try_acquire_for(const std::chrono::duration<Rep,Period>& timeout_duration)
+    {
+        if (!m_sem)
+            throw_system_error(std::errc::operation_not_permitted, "unique_acquire_guard::try_acquire_for(): no associated semaphore");
+        if (m_active)
+            throw_system_error(std::errc::resource_deadlock_would_occur, "unique_acquire_guard::try_acquire_for(): already owns acquire");
+        m_active = m_sem->try_acquire_for(timeout_duration);
+        return m_active;
+    }
+
+    template<class Clock, class Duration>
+    [[nodiscard]]
+    bool try_acquire_until(const std::chrono::time_point<Clock,Duration>& timeout_time)
+    {
+        if (!m_sem)
+            throw_system_error(std::errc::operation_not_permitted, "unique_acquire_guard::try_acquire_until(): no associated semaphore");
+        if (m_active)
+            throw_system_error(std::errc::resource_deadlock_would_occur, "unique_acquire_guard::try_acquire_until(): already owns acquire");
+        m_active = m_sem->try_acquire_until(timeout_time);
+        return m_active;
+    }
+
     void release()
     {
         if (!owns_acquire())
-            throw std::system_error(std::errc::operation_not_permitted);
+            throw_system_error(std::errc::operation_not_permitted, "unique_acquire_guard::release(): does not own acquire");
         m_sem->release();
         m_active = false;
     }
@@ -114,6 +159,11 @@ public:
 private:
     Semaphore* m_sem{nullptr};
     bool m_active{false};
+
+    [[noreturn]] void throw_system_error(std::errc ev, const char* what)
+    {
+        throw std::system_error(std::error_code(static_cast<int>(ev), std::system_category()), what);
+    }
 };
 
 template<class Sem>

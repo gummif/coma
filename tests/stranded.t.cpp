@@ -1,3 +1,4 @@
+#if defined(COMA_ENABLE_COROUTINE_TESTS)
 #include <coma/stranded.hpp>
 #include <test_util.hpp>
 #include <vector>
@@ -30,3 +31,5 @@ TEST_CASE("stranded await invoke", "[stranded]")
 
     ctx.run();
 }
+
+#endif // defined(COMA_ENABLE_COROUTINE_TESTS)

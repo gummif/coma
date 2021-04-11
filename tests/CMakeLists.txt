@@ -13,8 +13,6 @@ endif()
 
 find_package(Threads)
 
-message(INFO ${COMA_TESTS_BOOST_INC_DIR})
-
 function(coma_add_test TESTNAME)
   add_executable(test_${TESTNAME} ${TESTNAME}.t.cpp)
   target_include_directories(test_${TESTNAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -40,6 +38,7 @@ function(coma_add_test TESTNAME)
   endif()
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.2)
     target_compile_options(test_${TESTNAME} PRIVATE -fcoroutines)
+    target_compile_definitions(test_${TESTNAME} PRIVATE COMA_ENABLE_COROUTINE_TESTS)
   endif()
   add_test(NAME ${TESTNAME} COMMAND test_${TESTNAME})
 endfunction()

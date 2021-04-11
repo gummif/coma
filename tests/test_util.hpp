@@ -8,6 +8,7 @@
 #include <catch2/catch.hpp>
 #include <iostream>
 #include <vector>
+#include <thread>
 
 #define DO_TEST_LOG
 
@@ -16,6 +17,8 @@
 #else
 #define TEST_LOG(x)
 #endif
+
+using defclock = std::chrono::steady_clock;
 
 namespace coma {
 

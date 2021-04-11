@@ -1,3 +1,4 @@
+#if defined(COMA_ENABLE_COROUTINE_TESTS)
 #include <coma/co_lift.hpp>
 #include <test_util.hpp>
 #include <iostream>
@@ -38,3 +39,5 @@ TEST_CASE("co_lift", "[co_lift]")
     CHECK(v[0] == 42);
     CHECK(v[1] == 43);
 }
+
+#endif // defined(COMA_ENABLE_COROUTINE_TESTS)

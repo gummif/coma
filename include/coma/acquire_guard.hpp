@@ -25,7 +25,7 @@ public:
     {
     }
 
-    ~acquire_guard() noexcept
+    ~acquire_guard()
     {
         m_sem->release();
     }
