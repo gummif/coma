@@ -13,23 +13,34 @@ endif()
 
 find_package(Threads)
 
+message(INFO ${COMA_TESTS_BOOST_INC_DIR})
+
 function(coma_add_test TESTNAME)
   add_executable(test_${TESTNAME} ${TESTNAME}.t.cpp)
   target_include_directories(test_${TESTNAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
   target_link_libraries(test_${TESTNAME} PRIVATE coma Catch2::Catch2WithMain ${CMAKE_THREAD_LIBS_INIT})
   target_compile_options(test_${TESTNAME} PRIVATE
-    # TODO fix this include
-    -I/home/gummi/boost/boost_1_75_0
-    -fcoroutines
-    -fsanitize=address
-    -fno-omit-frame-pointer
-    -Wall -Wextra -Winit-self -Wreorder)
-  #target_compile_definitions(mytest PRIVATE
-  #  ASIO_HAS_CO_AWAIT
-  #  ASIO_HAS_STD_COROUTINE
-  #  ASIO_NO_DEPRECATED
-  #  ASIO_NO_TS_EXECUTORS)
-  target_link_options(test_${TESTNAME} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    -I${COMA_TESTS_BOOST_INC_DIR}
+    $<$<CXX_COMPILER_ID:MSVC>:
+      /W4,
+      -Wall -Wextra -Winit-self -Wreorder>)
+  target_compile_definitions(test_${TESTNAME} PRIVATE
+    #BOOST_ASIO_HAS_CO_AWAIT
+    #BOOST_ASIO_HAS_STD_COROUTINE
+    BOOST_ASIO_NO_DEPRECATED
+    BOOST_ASIO_NO_TS_EXECUTORS)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0 OR
+     CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.0)
+    target_compile_options(test_${TESTNAME} PRIVATE
+      -fsanitize=address
+      -fno-omit-frame-pointer)
+    target_link_options(test_${TESTNAME} PRIVATE
+      -fsanitize=address
+      -fno-omit-frame-pointer)
+  endif()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.2)
+    target_compile_options(test_${TESTNAME} PRIVATE -fcoroutines)
+  endif()
   add_test(NAME ${TESTNAME} COMMAND test_${TESTNAME})
 endfunction()
 
