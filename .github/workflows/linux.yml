@@ -15,9 +15,11 @@ jobs:
            curl -L https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz --output boost_1_75_0.tar.gz
            mkdir ~/boost
            tar -xzf boost_1_75_0.tar.gz -C ~/boost
+           ls ~/boost/boost_1_75_0/boost
+           ls $PWD/boost/boost_1_75_0/boost
       shell: bash
     - name: cmake
-      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR=~/boost/boost_1_75_0
+      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost/boost_1_75_0"
       env:
         CC:  gcc-10
         CXX: g++-10
