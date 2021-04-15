@@ -84,12 +84,12 @@ TEST_CASE("async_cond_var wait many fifo one", "[async_cond_var]")
 TEST_CASE("async_cond_var wait many pred", "[async_cond_var]")
 {
     boost::asio::io_context ctx;
-    coma::async_cond_var cv{ctx.get_executor()};
+    cond_var cv{ctx.get_executor()};
 
     int done = 0;
     boost::asio::co_spawn(ctx, [&]() -> awaitable<void> {
         TEST_LOG("before await");
-        co_await cv.async_wait(coma::logged_fn([&] { return done == 2; }), use_awaitable);
+        co_await cv.async_wait(coma::logged_fn([&] { return done == 2; }));
         TEST_LOG("after await");
         CHECK(done == 2);
         done = 3;

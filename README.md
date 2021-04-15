@@ -3,11 +3,15 @@
 This library contains async/coroutine/concurrency primatives for C++20 built on Boost.ASIO. Utilities include RAII guards for semaphores, async semaphores, async condition variables and async thread-safe wrappers and handles.
 
 The library provides:
-* `coma::acquire_guard` and `coma::unique_acquire_guard` for semaphores, equivalent to `std::lock_guard` and `std::unique_lock` for mutexes.
 
-And currently experimental:
-* `coma::async_semaphore` and `coma::async_timed_semaphore` (and `*_mt` variants) semaphores with async APIs.
-* `coma::async_cond_var` and `coma::async_timed_cond_var` condition variables with async APIs.
+* `coma::async_semaphore` lightweight async semaphore, _not_ thread-safe, no additional synchronization, atomics or reference counting. With FIFO ordering of waiting tasks.
+* `coma::async_cond_var` lightweight async condition variable, _not_ thread-safe, no additional synchronization, atomics or reference counting. With FIFO ordering of waiting tasks and without spurious wakening.
+* `coma::acquire_guard` equivalent to `std::lock_guard` for semaphores.
+* `coma::unique_acquire_guard` equivalent to `std::unique_lock` for semaphores.
+
+And currently experimental or on the TODO list:
+* `coma::async_timed_semaphore` with timed functions.
+* `coma::async_timed_cond_var` with timed functions, cancellation.
 * `coma::stranded` thread-safe async wrapper of values through a strand (similar to proposed `std::synchronized_value`).
 * `coma::co_lift` a higher-order function to lift regular functions `R()` into `awaitable<R>()`.
 
@@ -152,21 +156,21 @@ There are a few variant of semaphores and condition variables where there is a t
 
 We can try to classify functions that do multi-thread or multi-task synchronization into:
 
-* *Async/asynchronous*: Possibly deferred function continuation. Can be
-    * possibly deferred blocking (`awaitable<void> async_lock()`)
-    * possibly deferred non-blocking  (`awaitable<bool> async_try_lock()`)
+* *Asynchronous*: Possibly deferred function continuation. Can be
+    * waiting (`awaitable<void> async_lock()`)
+    * non-waiting  (`awaitable<bool> async_try_lock()`)
 * *Synchronous*: Inline function completion. Can be
     * blocking (`void lock()`) or 
     * non-blocking (`bool try_lock()`).
 
-Async vs sync in general says nothing of the thread-safety of a function. Functions in this library should be considered non-thread-safe unless specified otherwise. Classes with a `_mt` suffix provide a thread-safe API.
+Async vs sync in general says nothing of the thread-safety of a function. Functions in this library should be considered non-thread-safe unless specified otherwise. Classes with a `_s` suffix provide a thread-safe API.
 
 ## Synopsis
 
-### `coma::async_cond_var`
+### async_cond_var
 ```c++
-template<class Executor>
-class async_cond_var;
+template<class Executor = net::any_io_executor>
+class async_cond_var
 ```
 A non-thread-safe async condition variable with FIFO ordering and without spurious wakening.
 

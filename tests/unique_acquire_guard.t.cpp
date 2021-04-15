@@ -39,10 +39,36 @@ TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
         coma::unique_acquire_guard<dummy> g;
     }
     {
+        coma::unique_acquire_guard<dummy> g{d};
+        CHECK(d.n == 0);
+        CHECK(g);
+        CHECK(g.owns_acquire());
+        CHECK(g.semaphore() == &d);
+    }
+    CHECK(d.n == 1);
+    {
         coma::unique_acquire_guard g{d};
         CHECK(d.n == 0);
     }
     CHECK(d.n == 1);
+    {
+        coma::unique_acquire_guard g{d};
+        CHECK(d.n == 0);
+        g.release();
+        CHECK(!g.owns_acquire());
+        CHECK(d.n == 1);
+    }
+    CHECK(d.n == 1);
+    {
+        coma::unique_acquire_guard g{d};
+        CHECK(d.n == 0);
+        CHECK(g.release_ownership() == &d);
+        CHECK(!g.owns_acquire());
+        CHECK(g.semaphore() == nullptr);
+        CHECK(d.n == 0);
+    }
+    CHECK(d.n == 0);
+    d.n = 1;
 
     {
         coma::unique_acquire_guard g{d, coma::adapt_acquire};
