@@ -1,4 +1,6 @@
 # coma
+![ubuntu linux](https://github.com/gummif/coma/actions/workflows/linux.yml/badge.svg)
+
 
 This library contains async/coroutine/concurrency primatives for C++20 built on Boost.ASIO. Utilities include RAII guards for semaphores, async semaphores, async condition variables and async thread-safe wrappers and handles.
 
