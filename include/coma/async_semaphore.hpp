@@ -17,17 +17,34 @@ namespace detail
 {
 
 struct acq_pred {
-    std::ptrdiff_t* count;
+    std::ptrdiff_t* counter;
     bool operator()() noexcept
     {
-        assert(count && *count >= 0);
-        if (*count == 0)
+        assert(*counter >= 0);
+        if (*counter == 0)
         {
             return false;
         }
         // successful completion handler called
         // if and only if pred() is true
-        --(*count);
+        --(*counter);
+        return true;
+    }
+};
+
+struct acq_pred_n {
+    std::ptrdiff_t* counter;
+    std::ptrdiff_t n;
+    bool operator()() noexcept
+    {
+        assert(*counter >= 0);
+        if (*counter < n)
+        {
+            return false;
+        }
+        // successful completion handler called
+        // if and only if pred() is true
+        *counter -= n;
         return true;
     }
 };
@@ -61,11 +78,9 @@ public:
     {
         assert(0 <= m_counter);
     }
-    ~async_semaphore() noexcept = default;
+    ~async_semaphore() = default;
     async_semaphore(const async_semaphore&) = delete;
-    async_semaphore(async_semaphore&&) = delete;
     async_semaphore& operator=(const async_semaphore&) = delete;
-    async_semaphore& operator=(async_semaphore&&) = delete;
 
     template<class CompletionToken = default_token>
     [[nodiscard]] auto async_acquire(CompletionToken&& token = default_token{})
@@ -75,6 +90,17 @@ public:
             void(boost::system::error_code)>(
                 detail::run_wait_pred_op{},
                 token, &m_timer, detail::acq_pred{&m_counter});
+    }
+
+    template<class CompletionToken = default_token>
+    [[nodiscard]] auto async_acquire_n(std::ptrdiff_t n, CompletionToken&& token = default_token{})
+    {
+        assert(n >= 0);
+        return net::async_initiate<
+            CompletionToken,
+            void(boost::system::error_code)>(
+                detail::run_wait_pred_op{},
+                token, &m_timer, detail::acq_pred_n{&m_counter, n});
     }
 
     [[nodiscard]] bool try_acquire()

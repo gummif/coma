@@ -2,6 +2,11 @@
 #include <coma/co_lift.hpp>
 #include <test_util.hpp>
 
+static_assert(!std::is_copy_constructible<coma::async_semaphore<>>::value, "");
+static_assert(!std::is_move_constructible<coma::async_semaphore<>>::value, "");
+static_assert(!std::is_copy_assignable<coma::async_semaphore<>>::value, "");
+static_assert(!std::is_move_assignable<coma::async_semaphore<>>::value, "");
+
 TEST_CASE("async_semaphore ctor", "[async_semaphore]")
 {
     boost::asio::io_context ctx;
@@ -120,6 +125,46 @@ TEST_CASE("async_semaphore async_acquire many release 2", "[async_semaphore]")
     });
     ctx.run();
     CHECK(done == 2);
+}
+
+TEST_CASE("async_semaphore async_acquire_n immediate", "[async_semaphore]")
+{
+    boost::asio::io_context ctx;
+    coma::async_semaphore sem{ctx.get_executor(), 2};
+
+    int done = 0;
+    sem.async_acquire_n(2, [&](auto ec) {
+        CHECK(!ec);
+        ++done;
+    });
+    ctx.run();
+    CHECK(done == 1);
+}
+
+TEST_CASE("async_semaphore async_acquire_n", "[async_semaphore]")
+{
+    boost::asio::io_context ctx;
+    coma::async_semaphore sem{ctx.get_executor(), 0};
+
+    int done = 0;
+    sem.async_acquire_n(2, [&](auto ec) {
+        CHECK(!ec);
+        ++done;
+    });
+    ctx.poll();
+    CHECK(done == 0);
+
+    boost::asio::post(ctx, [&] {
+        sem.release();
+    });
+    ctx.poll();
+    CHECK(done == 0);
+
+    boost::asio::post(ctx, [&] {
+        sem.release();
+    });
+    ctx.run();
+    CHECK(done == 1);
 }
 
 #if defined(COMA_ENABLE_COROUTINE_TESTS)

@@ -23,7 +23,7 @@ And currently experimental or on the TODO list:
 
 ## Examples
 
-Using async semaphore as a lightweight async latch between two threads. This example spawns a new thread to execute some heavy task without blocking the current executor/execution context.
+Using async semaphore as a lightweight async latch between two threads. This example spawns a new thread to execute some heavy task without blocking the current executor/execution context. Using `async_acquire_n` to synchronize the completion of multiple task is left as an excercise.
 ```c++
  // may throw
 int blocking_get_answer()
@@ -60,7 +60,7 @@ auto co_spawn_thread(F f) -> awaitable<R>
     co_return std::move(ret);
 }
 
-awaitable<int> get_answer()
+awaitable<int> async_get_answer()
 {
     return co_spawn_thread(&blocking_get_answer);
 }
