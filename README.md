@@ -201,14 +201,11 @@ template<class Executor = net::any_io_executor>
 class async_cond_var;
 ```
 
-In header `<coma/acquire_guard.hpp>`
+In header `<coma/semaphore_guards.hpp>`
 ```c++
 template<class Semaphore>
 class acquire_guard;
-```
 
-In header `<coma/unique_acquire_guard.hpp>`
-```c++
 template<class Semaphore>
 class unique_acquire_guard;
 ```

@@ -1,4 +1,4 @@
-#include <coma/unique_acquire_guard.hpp>
+#include <coma/semaphore_guards.hpp>
 #include <test_util.hpp>
 
 struct dummy

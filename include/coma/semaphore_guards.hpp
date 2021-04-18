@@ -1,6 +1,6 @@
 #pragma once
 
-#include <coma/guard_tags.hpp>
+#include <coma/detail/core.hpp>
 
 #include <cassert>
 #include <chrono>
@@ -9,6 +9,45 @@
 
 namespace coma
 {
+
+struct adapt_acquire_t {};
+struct try_to_acquire_t {};
+struct defer_acquire_t {};
+COMA_INLINE_VAR constexpr adapt_acquire_t adapt_acquire{};
+COMA_INLINE_VAR constexpr try_to_acquire_t try_to_acquire{};
+COMA_INLINE_VAR constexpr defer_acquire_t defer_acquire{};
+
+// Call release on semaphore at scope exit
+template<class Semaphore>
+class acquire_guard
+{
+public:
+    using semaphore_type = Semaphore;
+
+    COMA_NODISCARD explicit acquire_guard(Semaphore& sem)
+        : m_sem{&sem}
+    {
+        m_sem->acquire();
+    }
+    COMA_NODISCARD acquire_guard(Semaphore& sem, adapt_acquire_t) noexcept
+        : m_sem{&sem}
+    {
+    }
+
+    ~acquire_guard()
+    {
+        m_sem->release();
+    }
+
+    acquire_guard(const acquire_guard&) = delete;
+    acquire_guard(acquire_guard&&) = delete;
+
+    acquire_guard& operator=(const acquire_guard&) = delete;
+    acquire_guard& operator=(acquire_guard&&) = delete;
+
+private:
+    Semaphore* m_sem;
+};
 
 // Call release on semaphore at scope exit if owns acquire
 template<class Semaphore>

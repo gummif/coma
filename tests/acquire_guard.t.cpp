@@ -1,4 +1,4 @@
-#include <coma/acquire_guard.hpp>
+#include <coma/semaphore_guards.hpp>
 #include <test_util.hpp>
 
 TEST_CASE("acquire_guard", "[acquire_guard]") {
