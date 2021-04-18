@@ -15,9 +15,9 @@ jobs:
            tar -xzf boost_1_75_0.tar.gz
       shell: bash
     - name: cmake
-      run: cmake -S . -B build -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_75_0"
+      run: cmake -S . -B build -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_75_0"
     - name: build
-      run: cmake --build build --parallel 8
+      run: cmake --build build  --config Debug --parallel 8
     - name: test
       run: cd build; ctest --output-on-failure
 

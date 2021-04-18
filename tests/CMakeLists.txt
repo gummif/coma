@@ -19,9 +19,7 @@ function(coma_add_test TESTNAME)
   target_link_libraries(test_${TESTNAME} PRIVATE coma Catch2::Catch2WithMain ${CMAKE_THREAD_LIBS_INIT})
   target_compile_options(test_${TESTNAME} PRIVATE
     -I${COMA_TESTS_BOOST_INC_DIR}
-    $<$<CXX_COMPILER_ID:MSVC>:
-      /W4,
-      -Wall -Wextra -Winit-self -Wreorder>)
+    $<$<CXX_COMPILER_ID:MSVC>: /W4 , -Wall -Wextra -Winit-self -Wreorder>)
   target_compile_definitions(test_${TESTNAME} PRIVATE
     #BOOST_ASIO_HAS_CO_AWAIT
     #BOOST_ASIO_HAS_STD_COROUTINE
