@@ -1,5 +1,6 @@
 # coma
 ![ubuntu linux](https://github.com/gummif/coma/actions/workflows/linux.yml/badge.svg)
+![windows](https://github.com/gummif/coma/actions/workflows/windows.yml/badge.svg)
 
 
 Coma is a C++11 header-only library providing asynchronous concurrency primatives based on the asynchronous model of Boost.ASIO. Utilities include RAII guards for semaphores, async semaphores, async condition variables and async thread-safe wrappers and handles.
