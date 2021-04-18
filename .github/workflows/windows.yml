@@ -19,5 +19,4 @@ jobs:
     - name: build
       run: cmake --build build  --config Debug --parallel 8
     - name: test
-      run: cd build; ctest --output-on-failure
-
+      run: cd build; ctest -C Debug --output-on-failure
