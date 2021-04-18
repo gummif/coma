@@ -1,7 +1,7 @@
 #pragma once
 
 #include <coma/detail/core.hpp>
-#if COMA_COROUTINES
+#if defined(COMA_COROUTINES)
 
 #include <coma/co_lift.hpp>
 #include <cassert>

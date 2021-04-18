@@ -2,7 +2,7 @@
 
 #include <coma/detail/core.hpp>
 
-#if COMA_COROUTINES
+#if defined(COMA_COROUTINES)
 #include <boost/asio/basic_waitable_timer.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/awaitable.hpp>
