@@ -1,7 +1,7 @@
-#if defined(COMA_ENABLE_COROUTINE_TESTS)
 #include <coma/async_timed_cond_var.hpp>
 #include <coma/co_lift.hpp>
 #include <test_util.hpp>
+#if defined(COMA_COROUTINES) && defined(COMA_ENABLE_COROUTINE_TESTS)
 
 TEST_CASE("async_timed_cond_var ctor", "[async_timed_cond_var]")
 {

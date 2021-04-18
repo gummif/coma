@@ -1,5 +1,8 @@
 #pragma once
 
+#include <coma/detail/core.hpp>
+
+#if COMA_COROUTINES
 #include <boost/asio/basic_waitable_timer.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/awaitable.hpp>
@@ -53,7 +56,7 @@ public:
     async_timed_cond_var& operator=(const async_timed_cond_var&) = delete;
     async_timed_cond_var& operator=(async_timed_cond_var&&) = delete;
 
-    [[nodiscard]]
+    COMA_NODISCARD
     boost::asio::awaitable<void> async_wait()
     {
         boost::system::error_code ec;
@@ -63,14 +66,14 @@ public:
     }
 
     template<class Predicate>
-    [[nodiscard]]
+    COMA_NODISCARD
     boost::asio::awaitable<void> async_wait(Predicate pred)
     {
         while (!pred())
             co_await async_wait();
     }
 
-    [[nodiscard]]
+    COMA_NODISCARD
     boost::asio::awaitable<cv_status> async_wait_until(time_point endtime)
     {
         auto it = m_times.insert(endtime);
@@ -86,7 +89,7 @@ public:
     }
 
     template<class Predicate>
-    [[nodiscard]]
+    COMA_NODISCARD
     boost::asio::awaitable<bool> async_wait_until(time_point endtime, Predicate pred)
     {
         while (!pred())
@@ -98,14 +101,14 @@ public:
         co_return true;
     }
 
-    [[nodiscard]]
+    COMA_NODISCARD
     boost::asio::awaitable<cv_status> async_wait_for(duration dur)
     {
         return async_wait_until(clock_type::now() + dur);
     }
 
     template<class Predicate>
-    [[nodiscard]]
+    COMA_NODISCARD
     boost::asio::awaitable<bool> async_wait_for(duration dur, Predicate pred)
     {
         return async_wait_until(clock_type::now() + dur, std::move(pred));
@@ -129,3 +132,5 @@ private:
 };
 
 } // namespace coma
+
+#endif

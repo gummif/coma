@@ -10,8 +10,7 @@
 #include <vector>
 #include <thread>
 
-#define DO_TEST_LOG
-
+//#define DO_TEST_LOG
 #ifdef DO_TEST_LOG 
 #define TEST_LOG(x) std::cerr << x << std::endl
 #else
@@ -52,12 +51,12 @@ struct logged_fn
     logged_fn& operator=(logged_fn&& other) noexcept { TEST_LOG("logged_fn move assign"); f = std::move(other.f); return *this; }
     logged_fn(const logged_fn&) = delete;
     logged_fn& operator=(const logged_fn&) = delete;
-    decltype(auto) operator()()
+    auto operator()() -> decltype(f())
     {
         TEST_LOG("logged_fn op");
         return f();
     }
-    decltype(auto) operator()() const
+    auto operator()() const -> decltype(f())
     {
         TEST_LOG("logged_fn op");
         return f();
@@ -65,12 +64,17 @@ struct logged_fn
 };
 
 template<class F>
+logged_fn<F> make_logged_fn(F f)
+{
+    return logged_fn<F>(std::move(f));
+}
+
+template<class F>
 struct finally
 {
 	F f;
-	finally(auto g) : f{std::move(g)} { TEST_LOG("finally ctor"); }
+	finally(F g) : f{std::move(g)} { TEST_LOG("finally ctor"); }
 	~finally() { TEST_LOG("finally ctor"); if (f) f(); }
 };
-
 
 }

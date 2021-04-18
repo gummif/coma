@@ -30,16 +30,17 @@ struct dummy
     void release() { ++n; }
 };
 
-TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
-
+TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]")
+{
+    using guard_t = coma::unique_acquire_guard<dummy>;
     dummy d{1};
 
     CHECK(d.n == 1);
     {
-        coma::unique_acquire_guard<dummy> g;
+        guard_t g;
     }
     {
-        coma::unique_acquire_guard<dummy> g{d};
+        guard_t g{d};
         CHECK(d.n == 0);
         CHECK(g);
         CHECK(g.owns_acquire());
@@ -47,12 +48,12 @@ TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
     }
     CHECK(d.n == 1);
     {
-        coma::unique_acquire_guard g{d};
+        guard_t g{d};
         CHECK(d.n == 0);
     }
     CHECK(d.n == 1);
     {
-        coma::unique_acquire_guard g{d};
+        guard_t g{d};
         CHECK(d.n == 0);
         g.release();
         CHECK(!g.owns_acquire());
@@ -60,7 +61,7 @@ TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
     }
     CHECK(d.n == 1);
     {
-        coma::unique_acquire_guard g{d};
+        guard_t g{d};
         CHECK(d.n == 0);
         CHECK(g.release_ownership() == &d);
         CHECK(!g.owns_acquire());
@@ -71,19 +72,19 @@ TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
     d.n = 1;
 
     {
-        coma::unique_acquire_guard g{d, coma::adapt_acquire};
+        guard_t g{d, coma::adapt_acquire};
         CHECK(d.n == 1);
     }
     CHECK(d.n == 2);
 
     {
-        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        guard_t g{d, coma::defer_acquire};
         CHECK(d.n == 2);
     }
     CHECK(d.n == 2);
 
     {
-        coma::unique_acquire_guard g{d};
+        guard_t g{d};
         CHECK(d.n == 1);
         coma::unique_acquire_guard<dummy> g2;
         using std::swap;
@@ -93,7 +94,7 @@ TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
     CHECK(d.n == 2);
 
     {
-        coma::unique_acquire_guard g{d};
+        guard_t g{d};
         CHECK(d.n == 1);
         auto g2 = std::move(g);
         CHECK(d.n == 1);
@@ -101,7 +102,7 @@ TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
     CHECK(d.n == 2);
 
     {
-        coma::unique_acquire_guard g{d};
+        guard_t g{d};
         CHECK(d.n == 1);
         coma::unique_acquire_guard<dummy> g2;
         g = std::move(g2);
@@ -110,7 +111,7 @@ TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
     CHECK(d.n == 2);
 
     {
-        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        guard_t g{d, coma::defer_acquire};
         CHECK_THROWS_AS(g.release(), std::system_error);
         g.acquire();
         CHECK(d.n == 1);
@@ -118,21 +119,21 @@ TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
     CHECK(d.n == 2);
 
     {
-        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        guard_t g{d, coma::defer_acquire};
         CHECK(g.try_acquire() == true);
         CHECK(d.n == 1);
     }
     CHECK(d.n == 2);
 
     {
-        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        guard_t g{d, coma::defer_acquire};
         CHECK(g.try_acquire_for(std::chrono::seconds{1}) == true);
         CHECK(d.n == 1);
     }
     CHECK(d.n == 2);
 
     {
-        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        guard_t g{d, coma::defer_acquire};
         CHECK(g.try_acquire_until(defclock::now() + std::chrono::seconds{1}) == true);
         CHECK(d.n == 1);
     }
@@ -140,21 +141,21 @@ TEST_CASE("unique_acquire_guard", "[unique_acquire_guard]") {
 
     d.n = 0;
     {
-        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        guard_t g{d, coma::defer_acquire};
         CHECK(g.try_acquire() == false);
         CHECK(d.n == 0);
     }
     CHECK(d.n == 0);
 
     {
-        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        guard_t g{d, coma::defer_acquire};
         CHECK(g.try_acquire_for(std::chrono::milliseconds{1}) == false);
         CHECK(d.n == 0);
     }
     CHECK(d.n == 0);
 
     {
-        coma::unique_acquire_guard g{d, coma::defer_acquire};
+        guard_t g{d, coma::defer_acquire};
         CHECK(g.try_acquire_until(defclock::now() + std::chrono::milliseconds{1}) == false);
         CHECK(d.n == 0);
     }

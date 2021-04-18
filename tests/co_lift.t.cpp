@@ -1,8 +1,8 @@
-#if defined(COMA_ENABLE_COROUTINE_TESTS)
 #include <coma/co_lift.hpp>
 #include <test_util.hpp>
 #include <iostream>
 #include <vector>
+#if defined(COMA_COROUTINES) && defined(COMA_ENABLE_COROUTINE_TESTS)
 
 TEST_CASE("co_lift", "[co_lift]")
 {

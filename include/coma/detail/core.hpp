@@ -3,6 +3,51 @@
 #include <utility>
 #include <type_traits>
 
+#if defined(_MSVC_LANG)
+#define COMA_CPP_LANG _MSVC_LANG
+#else
+#define COMA_CPP_LANG __cplusplus
+#endif
+
+#if defined(_HAS_CXX14) && _HAS_CXX14 && COMA_CPP_LANG < 201402L
+#undef COMA_CPP_LANG
+#define COMA_CPP_LANG 201402L
+#endif
+#if defined(_HAS_CXX17) && _HAS_CXX17 && COMA_CPP_LANG < 201703L
+#undef COMA_CPP_LANG
+#define COMA_CPP_LANG 201703L
+#endif
+
+#if COMA_CPP_LANG >= 201402L
+#define COMA_HAS_CPP14
+#endif
+#if COMA_CPP_LANG >= 201703L
+#define COMA_HAS_CPP17
+#endif
+
+#if defined(COMA_HAS_CPP17)
+#define COMA_NODISCARD [[nodiscard]]
+#else
+#define COMA_NODISCARD
+#endif
+
+#if defined(COMA_HAS_CPP14) && (!defined(_MSC_VER) || _MSC_VER > 1900)
+#define COMA_CONSTEXPR_ASSERT
+#endif
+#if defined(COMA_HAS_CPP17)
+#define COMA_INLINE_VAR inline
+#define COMA_CONSTEXPR_IF constexpr
+#else
+#define COMA_INLINE_VAR
+#define COMA_CONSTEXPR_IF
+#endif
+
+#if defined(__cpp_impl_coroutine) && __cplusplus > 201703L
+#define COMA_COROUTINES
+#endif
+
+#define COMA_ASYNC_RETURN_EC typename net::async_result<typename std::decay<CompletionToken>::type, void(boost::system::error_code)>::return_type
+
 namespace boost {
 namespace asio {
 }
@@ -31,11 +76,19 @@ struct is_predicate : std::false_type
 
 template<class T>
 struct is_predicate<
-  T,
-  void_t<decltype(std::declval<T>()() == true)>>
-    : std::true_type
+    T,
+    void_t<decltype(std::declval<T>()() == true)>>
+        : std::true_type
 {
 };
+
+template<class T, class U = T>
+T exchange(T& a, U&& b)
+{
+    auto temp = std::move(a);
+    a = std::forward<U>(b);
+    return temp;
+}
 
 } // namespace detail
 } // namespace coma

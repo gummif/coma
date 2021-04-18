@@ -31,15 +31,13 @@ public:
         : m_timer{std::move(ex), timer::time_point::max()}
     {
     }
-    ~async_cond_var() noexcept = default;
+    ~async_cond_var() = default;
     async_cond_var(const async_cond_var&) = delete;
-    async_cond_var(async_cond_var&&) = delete;
     async_cond_var& operator=(const async_cond_var&) = delete;
-    async_cond_var& operator=(async_cond_var&&) = delete;
 
     template<class CompletionToken = default_token,
-             typename = std::enable_if_t<!detail::is_predicate<CompletionToken>::value>>
-    [[nodiscard]] auto async_wait(CompletionToken&& token = default_token{})
+             typename = typename std::enable_if<!detail::is_predicate<CompletionToken>::value>::type>
+    COMA_NODISCARD auto async_wait(CompletionToken&& token = default_token{}) -> COMA_ASYNC_RETURN_EC
     {
         return net::async_initiate<
             CompletionToken,
@@ -47,8 +45,8 @@ public:
     }
 
     template<class Predicate, class CompletionToken = default_token,
-             typename = std::enable_if_t<detail::is_predicate<Predicate>::value>>
-    [[nodiscard]] auto async_wait(Predicate&& pred, CompletionToken&& token = default_token{})
+             typename = typename std::enable_if<detail::is_predicate<Predicate>::value>::type>
+    COMA_NODISCARD auto async_wait(Predicate&& pred, CompletionToken&& token = default_token{}) -> COMA_ASYNC_RETURN_EC
     {
         return net::async_initiate<
             CompletionToken,

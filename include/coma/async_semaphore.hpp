@@ -83,7 +83,7 @@ public:
     async_semaphore& operator=(const async_semaphore&) = delete;
 
     template<class CompletionToken = default_token>
-    [[nodiscard]] auto async_acquire(CompletionToken&& token = default_token{})
+    COMA_NODISCARD auto async_acquire(CompletionToken&& token = default_token{}) -> COMA_ASYNC_RETURN_EC
     {
         return net::async_initiate<
             CompletionToken,
@@ -93,7 +93,7 @@ public:
     }
 
     template<class CompletionToken = default_token>
-    [[nodiscard]] auto async_acquire_n(std::ptrdiff_t n, CompletionToken&& token = default_token{})
+    COMA_NODISCARD auto async_acquire_n(std::ptrdiff_t n, CompletionToken&& token = default_token{}) -> COMA_ASYNC_RETURN_EC
     {
         assert(n >= 0);
         return net::async_initiate<
@@ -103,7 +103,7 @@ public:
                 token, &m_timer, detail::acq_pred_n{&m_counter, n});
     }
 
-    [[nodiscard]] bool try_acquire()
+    COMA_NODISCARD bool try_acquire()
     {
         assert(m_counter >= 0);
         if (m_counter == 0)
@@ -138,7 +138,7 @@ private:
 // TODO time compared to simple co_spawn
 // NOTE: this function must be co_await-ed directly called, may otherwise result in use-after-free errors
 /*template<class Executor, class F>
-[[nodiscard]] auto co_dispatch(Executor ex, F&& f) -> net::awaitable<typename std::invoke_result_t<F&&>::value_type>
+COMA_NODISCARD auto co_dispatch(Executor ex, F&& f) -> net::awaitable<typename std::invoke_result_t<F&&>::value_type>
 {
     //auto c = co_await net::this_coro::executor;
     //if (ex == c)
@@ -173,7 +173,7 @@ public:
 
     const executor_type& get_executor() const { return m_strand; }
 
-    [[nodiscard]] net::awaitable<void> async_acquire()
+    COMA_NODISCARD net::awaitable<void> async_acquire()
     {
                 puts("== timer dispatching");
         co_await co_dispatch(m_strand, [this]() -> net::awaitable<void> {
@@ -191,7 +191,7 @@ public:
         });
     }
 
-    [[nodiscard]] net::awaitable<bool> async_try_acquire()
+    COMA_NODISCARD net::awaitable<bool> async_try_acquire()
     {
         co_return co_await co_dispatch(m_strand, [this]() -> net::awaitable<bool> {
             assert(m_counter >= 0);
@@ -207,7 +207,7 @@ public:
     // TODO ac for, ac until possible?
     // cancellation?
 
-    [[nodiscard]] net::awaitable<void> async_release()
+    COMA_NODISCARD net::awaitable<void> async_release()
     {
         co_await co_dispatch(m_strand, [this]() -> net::awaitable<void> {
                 puts("== timer cancel");
@@ -218,7 +218,7 @@ public:
         });
     }
 
-    [[nodiscard]] net::awaitable<void> async_release(std::ptrdiff_t n)
+    COMA_NODISCARD net::awaitable<void> async_release(std::ptrdiff_t n)
     {
         assert(n >= 0);
         co_await co_dispatch(m_strand, [this, n]() mutable -> net::awaitable<void> {

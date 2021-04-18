@@ -94,51 +94,5 @@ struct run_wait_pred_op
     }
 };
 
-/*template<class Handler, class Timer, class Predicate, class Finally>
-class wait_pred_finally_op : public base_wait_op<Handler, Timer>
-{
-    Predicate pred;
-    Finally fin;
-
-public:
-    template<class H, class P, class F>
-    wait_pred_finally_op(H&& h, Timer& tp, P&& p, F&& f)
-        : base_wait_op<Handler, Timer>(std::forward<H>(h), tp)
-        , pred{std::forward<P>(p)}
-        , fin{std::forward<F>(f)}
-    {
-        (*this)(boost::system::error_code{}, false);
-    }
-
-    void operator()(boost::system::error_code ec, bool continuation = true)
-    {
-        if (ec == net::error::operation_aborted)
-            ec = {};
-        if (ec || pred())
-        {
-            fin();
-            this->complete(continuation, ec);
-        }
-        else
-        {
-            this->timer.async_wait(std::move(*this));
-        }
-    }
-};
-
-struct run_wait_pred_finally_op
-{
-    template<class Handler, class Timer, class Predicate, class Finally>
-    void operator()(Handler&& h, Timer* t, Predicate&& pred, Finally&& fin)
-    {
-        wait_pred_finally_op<typename std::decay<Handler>::type,
-                     Timer,
-                     typename std::decay<Predicate>::type,
-                     typename std::decay<Finally>::type>(
-                std::forward<Handler>(h), *t,
-                std::forward<Predicate>(pred), std::forward<Finally>(fin));
-    }
-};*/
-
 } // namespace detail
 } // namespace coma

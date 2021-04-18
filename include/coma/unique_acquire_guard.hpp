@@ -19,33 +19,33 @@ public:
 
     unique_acquire_guard() noexcept = default;
 
-    [[nodiscard]] explicit unique_acquire_guard(Semaphore& sem)
+    COMA_NODISCARD explicit unique_acquire_guard(Semaphore& sem)
         : m_sem{&sem}
     {
         m_sem->acquire();
         m_active = true;
     }
 
-    [[nodiscard]] unique_acquire_guard(Semaphore& sem, defer_acquire_t) noexcept
+    COMA_NODISCARD unique_acquire_guard(Semaphore& sem, defer_acquire_t) noexcept
         : m_sem{&sem}
         , m_active{false}
     {
     }
 
-    [[nodiscard]] unique_acquire_guard(Semaphore& sem, try_to_acquire_t) noexcept
+    COMA_NODISCARD unique_acquire_guard(Semaphore& sem, try_to_acquire_t) noexcept
         : m_sem{&sem}
     {
         m_active = m_sem->try_acquire();
     }
 
-    [[nodiscard]] unique_acquire_guard(Semaphore& sem, adapt_acquire_t)
+    COMA_NODISCARD unique_acquire_guard(Semaphore& sem, adapt_acquire_t)
         : m_sem{&sem}
         , m_active{true}
     {
     }
 
     template<class Rep, class Period>
-    [[nodiscard]] unique_acquire_guard(Semaphore& sem,
+    COMA_NODISCARD unique_acquire_guard(Semaphore& sem,
         const std::chrono::duration<Rep,Period>& timeout_duration)
         : m_sem{&sem}
     {
@@ -53,7 +53,7 @@ public:
     }
 
     template<class Clock, class Duration>
-    [[nodiscard]] unique_acquire_guard(Semaphore& sem,
+    COMA_NODISCARD unique_acquire_guard(Semaphore& sem,
         const std::chrono::time_point<Clock,Duration>& timeout_time)
         : m_sem{&sem}
     {
@@ -62,9 +62,9 @@ public:
 
     unique_acquire_guard(const unique_acquire_guard&) = delete;
 
-    [[nodiscard]] unique_acquire_guard(unique_acquire_guard&& o) noexcept
-        : m_sem{std::exchange(o.m_sem, nullptr)}
-        , m_active{std::exchange(o.m_active, false)}
+    COMA_NODISCARD unique_acquire_guard(unique_acquire_guard&& o) noexcept
+        : m_sem{detail::exchange(o.m_sem, nullptr)}
+        , m_active{detail::exchange(o.m_active, false)}
     {}
 
     ~unique_acquire_guard()
@@ -79,8 +79,8 @@ public:
     {
         if (m_sem && m_active)
             m_sem->release();
-        m_sem = std::exchange(o.m_sem, nullptr);
-        m_active = std::exchange(o.m_active, false);
+        m_sem = detail::exchange(o.m_sem, nullptr);
+        m_active = detail::exchange(o.m_active, false);
         return *this;
     };
 
@@ -94,7 +94,7 @@ public:
         m_active = true;
     }
 
-    [[nodiscard]]
+    COMA_NODISCARD
     bool try_acquire()
     {
         if (!m_sem)
@@ -106,7 +106,7 @@ public:
     }
 
     template<class Rep, class Period>
-    [[nodiscard]]
+    COMA_NODISCARD
     bool try_acquire_for(const std::chrono::duration<Rep,Period>& timeout_duration)
     {
         if (!m_sem)
@@ -118,7 +118,7 @@ public:
     }
 
     template<class Clock, class Duration>
-    [[nodiscard]]
+    COMA_NODISCARD
     bool try_acquire_until(const std::chrono::time_point<Clock,Duration>& timeout_time)
     {
         if (!m_sem)
@@ -144,15 +144,15 @@ public:
     }
 
     // equivalent to std::unique_lock::release()
-    [[nodiscard]] semaphore_type* release_ownership() noexcept
+    COMA_NODISCARD semaphore_type* release_ownership() noexcept
     {
         m_active = false;
-        return std::exchange(m_sem, nullptr);
+        return detail::exchange(m_sem, nullptr);
     }
 
-    [[nodiscard]] semaphore_type* semaphore() const noexcept { return m_sem; }
+    COMA_NODISCARD semaphore_type* semaphore() const noexcept { return m_sem; }
 
-    [[nodiscard]] bool owns_acquire() const noexcept { return m_sem && m_active; }
+    COMA_NODISCARD bool owns_acquire() const noexcept { return m_sem && m_active; }
 
     explicit operator bool() const noexcept { return owns_acquire(); }
 

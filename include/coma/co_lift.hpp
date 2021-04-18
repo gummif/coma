@@ -1,6 +1,7 @@
 #pragma once
 
-#if defined(__cpp_impl_coroutine)
+#include <coma/detail/core.hpp>
+#if COMA_COROUTINES
 
 #include <utility>
 #include <boost/asio/awaitable.hpp>
@@ -16,4 +17,4 @@ auto co_lift(Function f) -> boost::asio::awaitable<decltype(std::move(f)())>
 
 } // namespace coma
 
-#endif // defined(__cpp_impl_coroutine)
+#endif

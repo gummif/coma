@@ -15,12 +15,12 @@ class acquire_guard
 public:
     using semaphore_type = Semaphore;
 
-    [[nodiscard]] explicit acquire_guard(Semaphore& sem)
+    COMA_NODISCARD explicit acquire_guard(Semaphore& sem)
         : m_sem{&sem}
     {
         m_sem->acquire();
     }
-    [[nodiscard]] acquire_guard(Semaphore& sem, adapt_acquire_t) noexcept
+    COMA_NODISCARD acquire_guard(Semaphore& sem, adapt_acquire_t) noexcept
         : m_sem{&sem}
     {
     }

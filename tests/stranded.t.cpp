@@ -1,7 +1,7 @@
-#if defined(COMA_ENABLE_COROUTINE_TESTS)
 #include <coma/stranded.hpp>
 #include <test_util.hpp>
 #include <vector>
+#if defined(COMA_COROUTINES) && defined(COMA_ENABLE_COROUTINE_TESTS)
 
 TEST_CASE("stranded simple invoke", "[stranded]")
 {

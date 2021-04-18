@@ -12,13 +12,13 @@ TEST_CASE("acquire_guard", "[acquire_guard]") {
 
     CHECK(d.n == 1);
     {
-        coma::acquire_guard g{d};
+        coma::acquire_guard<dummy> g{d};
         CHECK(d.n == 0);
     }
     CHECK(d.n == 1);
 
     {
-        coma::acquire_guard g{d, coma::adapt_acquire};
+        coma::acquire_guard<dummy> g{d, coma::adapt_acquire};
         CHECK(d.n == 1);
     }
     CHECK(d.n == 2);

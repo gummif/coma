@@ -1,5 +1,8 @@
 #pragma once
 
+#include <coma/detail/core.hpp>
+#if COMA_COROUTINES
+
 #include <coma/co_lift.hpp>
 #include <cassert>
 #include <utility>
@@ -39,7 +42,7 @@ public:
 
     template<class F, class Token = const boost::asio::use_awaitable_t<>&, class FR = std::invoke_result_t<F, T&>>
         requires(detail::is_awaitable<FR>::value)
-    [[nodiscard]]
+    COMA_NODISCARD
     auto invoke(F&& f, Token&& token = boost::asio::use_awaitable)
     {
         return boost::asio::co_spawn(m_strand,
@@ -49,7 +52,7 @@ public:
 
     template<class F, class Token = const boost::asio::use_awaitable_t<>&, class FR = std::invoke_result_t<F, T&>>
         requires(!detail::is_awaitable<FR>::value)
-    [[nodiscard]]
+    COMA_NODISCARD
     auto invoke(F&& f, Token&& token = boost::asio::use_awaitable)
     {
         return boost::asio::co_spawn(m_strand,
@@ -63,3 +66,5 @@ private:
 };
 
 } // namespace coma
+
+#endif
