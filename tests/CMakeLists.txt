@@ -27,7 +27,7 @@ function(coma_add_test TESTNAME)
     CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(test_${TESTNAME} PRIVATE -Wall -Wextra -Winit-self -Wreorder)
   else()
-    target_compile_options(test_${TESTNAME} PRIVATE
+    target_compile_definitions(test_${TESTNAME} PRIVATE
       _WIN32_WINNT=0x0601
       BOOST_ASIO_HAS_STD_CHRONO
       BOOST_ASIO_DISABLE_BOOST_REGEX
