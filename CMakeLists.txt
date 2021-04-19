@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0.0)
 
 project(coma VERSION 0.0.0)
 
+include(GNUInstallDirs)
+
 message("coma v${coma_VERSION}")
 SET(COMA_ENABLE_TESTS "0" CACHE BOOL "Enable testing")
 SET(COMA_TESTS_BOOST_INC_DIR "" CACHE STRING "Boost include dir for tests")
