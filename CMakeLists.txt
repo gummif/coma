@@ -22,7 +22,6 @@ install(
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 if(${COMA_ENABLE_TESTS})
-  message("Boost include dir: " ${COMA_TESTS_BOOST_INC_DIR})
   enable_testing()
   add_subdirectory(tests)
 endif()

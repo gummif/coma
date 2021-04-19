@@ -1,6 +1,6 @@
 #pragma once
 
-#include <coma/detail/core.hpp>
+#include <coma/detail/core_async.hpp>
 #if defined(COMA_COROUTINES)
 
 #include <utility>

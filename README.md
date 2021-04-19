@@ -191,13 +191,13 @@ net::awaitable<int> f(std::stop_token st)
 
 In header `<coma/async_semaphore.hpp>`
 ```c++
-template<class Executor = net::any_io_executor>
+template<class Executor COMA_SET_DEFAULT_IO_EXECUTOR>
 class async_semaphore;
 ```
 
 In header `<coma/async_cond_var.hpp>`
 ```c++
-template<class Executor = net::any_io_executor>
+template<class Executor COMA_SET_DEFAULT_IO_EXECUTOR>
 class async_cond_var;
 ```
 

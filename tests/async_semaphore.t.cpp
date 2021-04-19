@@ -1,15 +1,21 @@
 #include <coma/async_semaphore.hpp>
 #include <test_util.hpp>
 
-static_assert(!std::is_copy_constructible<coma::async_semaphore<>>::value, "");
-static_assert(!std::is_move_constructible<coma::async_semaphore<>>::value, "");
-static_assert(!std::is_copy_assignable<coma::async_semaphore<>>::value, "");
-static_assert(!std::is_move_assignable<coma::async_semaphore<>>::value, "");
+#ifdef COMA_HAS_DEFAULT_IO_EXECUTOR
+using async_semaphore = coma::async_semaphore<>;
+#else
+using async_semaphore = coma::async_semaphore<boost::asio::io_context::executor_type>;
+#endif
+
+static_assert(!std::is_copy_constructible<async_semaphore>::value, "");
+static_assert(!std::is_move_constructible<async_semaphore>::value, "");
+static_assert(!std::is_copy_assignable<async_semaphore>::value, "");
+static_assert(!std::is_move_assignable<async_semaphore>::value, "");
 
 TEST_CASE("async_semaphore ctor", "[async_semaphore]")
 {
     boost::asio::io_context ctx;
-    coma::async_semaphore<> sem{ctx.get_executor(), 1};
+    async_semaphore sem{ctx.get_executor(), 1};
 
     REQUIRE(sem.try_acquire());
     REQUIRE(!sem.try_acquire());
@@ -25,13 +31,13 @@ TEST_CASE("async_semaphore ctor", "[async_semaphore]")
     {
         REQUIRE(sem.try_acquire());
         REQUIRE(!sem.try_acquire());
-        coma::acquire_guard<coma::async_semaphore<>> g{sem, coma::adapt_acquire};
+        coma::acquire_guard<async_semaphore> g{sem, coma::adapt_acquire};
         REQUIRE(!sem.try_acquire());
     }
     REQUIRE(sem.try_acquire());
     sem.release();
     {
-        coma::unique_acquire_guard<coma::async_semaphore<>> g{sem, coma::try_to_acquire};
+        coma::unique_acquire_guard<async_semaphore> g{sem, coma::try_to_acquire};
         CHECK(g);
         REQUIRE(!sem.try_acquire());
     }
@@ -41,7 +47,7 @@ TEST_CASE("async_semaphore ctor", "[async_semaphore]")
 TEST_CASE("async_semaphore async_acquire waiting", "[async_semaphore]")
 {
     boost::asio::io_context ctx;
-    coma::async_semaphore<> sem{ctx.get_executor(), 0};
+    async_semaphore sem{ctx.get_executor(), 0};
 
     int done = 0;
     sem.async_acquire([&](boost::system::error_code ec) {
@@ -61,7 +67,7 @@ TEST_CASE("async_semaphore async_acquire waiting", "[async_semaphore]")
 TEST_CASE("async_semaphore async_acquire immediate", "[async_semaphore]")
 {
     boost::asio::io_context ctx;
-    coma::async_semaphore<> sem{ctx.get_executor(), 1};
+    async_semaphore sem{ctx.get_executor(), 1};
 
     int done = 0;
     sem.async_acquire([&](boost::system::error_code ec) {
@@ -75,7 +81,7 @@ TEST_CASE("async_semaphore async_acquire immediate", "[async_semaphore]")
 TEST_CASE("async_semaphore async_acquire many", "[async_semaphore]")
 {
     boost::asio::io_context ctx;
-    coma::async_semaphore<> sem{ctx.get_executor(), 0};
+    async_semaphore sem{ctx.get_executor(), 0};
 
     int done = 0;
     sem.async_acquire([&](boost::system::error_code ec) {
@@ -105,7 +111,7 @@ TEST_CASE("async_semaphore async_acquire many", "[async_semaphore]")
 TEST_CASE("async_semaphore async_acquire many release 2", "[async_semaphore]")
 {
     boost::asio::io_context ctx;
-    coma::async_semaphore<> sem{ctx.get_executor(), 0};
+    async_semaphore sem{ctx.get_executor(), 0};
 
     int done = 0;
     sem.async_acquire([&](boost::system::error_code ec) {
@@ -129,7 +135,7 @@ TEST_CASE("async_semaphore async_acquire many release 2", "[async_semaphore]")
 TEST_CASE("async_semaphore async_acquire_n immediate", "[async_semaphore]")
 {
     boost::asio::io_context ctx;
-    coma::async_semaphore<> sem{ctx.get_executor(), 2};
+    async_semaphore sem{ctx.get_executor(), 2};
 
     int done = 0;
     sem.async_acquire_n(2, [&](boost::system::error_code ec) {
@@ -143,7 +149,7 @@ TEST_CASE("async_semaphore async_acquire_n immediate", "[async_semaphore]")
 TEST_CASE("async_semaphore async_acquire_n", "[async_semaphore]")
 {
     boost::asio::io_context ctx;
-    coma::async_semaphore<> sem{ctx.get_executor(), 0};
+    async_semaphore sem{ctx.get_executor(), 0};
 
     int done = 0;
     sem.async_acquire_n(2, [&](boost::system::error_code ec) {
@@ -170,12 +176,12 @@ TEST_CASE("async_semaphore async_acquire_n", "[async_semaphore]")
 
 using boost::asio::awaitable;
 using boost::asio::use_awaitable;
-using semaphore = boost::asio::use_awaitable_t<>::as_default_on_t<coma::async_semaphore<>>;
+using semaphore_coro = boost::asio::use_awaitable_t<>::as_default_on_t<async_semaphore>;
 
 TEST_CASE("async_semaphore coro async_acquire many", "[async_semaphore]")
 {
     boost::asio::io_context ctx;
-    semaphore sem{ctx.get_executor(), 0};
+    semaphore_coro sem{ctx.get_executor(), 0};
 
     int done = 0;
     boost::asio::co_spawn(ctx, [&]() -> awaitable<void> {
@@ -183,7 +189,7 @@ TEST_CASE("async_semaphore coro async_acquire many", "[async_semaphore]")
         ++done;
     }, boost::asio::detached);
     boost::asio::co_spawn(ctx, [&]() -> awaitable<void> {
-        co_await sem.async_acquire();
+        co_await sem.async_acquire(use_awaitable);
         ++done;
     }, boost::asio::detached);
 

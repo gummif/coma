@@ -12,6 +12,12 @@ if(NOT catch2_POPULATED)
 endif()
 
 find_package(Threads)
+if (COMA_TESTS_BOOST_INC_DIR STREQUAL "")
+  # no explicit path set, default to find_package
+  find_package(Boost)
+  SET(COMA_TESTS_BOOST_INC_DIR ${Boost_INCLUDE_DIR})
+endif()
+message("Boost include dir: " ${COMA_TESTS_BOOST_INC_DIR})
 
 function(coma_add_test TESTNAME)
   add_executable(test_${TESTNAME} ${TESTNAME}.t.cpp)

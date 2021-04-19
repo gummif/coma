@@ -1,6 +1,6 @@
 #pragma once
 
-#include <coma/detail/core.hpp>
+#include <coma/detail/core_async.hpp>
 #include <coma/detail/wait_ops.hpp>
 
 #include <boost/asio/basic_waitable_timer.hpp>
@@ -8,7 +8,7 @@
 namespace coma
 {
 
-template<class Executor = net::any_io_executor>
+template<class Executor COMA_SET_DEFAULT_IO_EXECUTOR>
 class async_cond_var
 {
     using clock = std::chrono::steady_clock;

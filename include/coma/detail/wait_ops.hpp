@@ -1,6 +1,6 @@
 #pragma once
 
-#include <coma/detail/core.hpp>
+#include <coma/detail/core_async.hpp>
 
 #include <boost/asio/async_result.hpp>
 #include <boost/beast/core/async_base.hpp>

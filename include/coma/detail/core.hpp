@@ -42,28 +42,7 @@
 #define COMA_CONSTEXPR_IF
 #endif
 
-#if defined(__cpp_impl_coroutine) && __cplusplus > 201703L
-#define COMA_COROUTINES
-#endif
-
-#define COMA_ASYNC_RETURN_EC typename net::async_result<typename std::decay<CompletionToken>::type, void(boost::system::error_code)>::return_type
-
-namespace boost {
-namespace asio {
-}
-namespace beast {
-}
-}
-
 namespace coma {
-
-namespace net {
-using namespace boost::asio;
-} // namespace net
-namespace netext {
-using namespace boost::beast;
-} // namespace netext
-
 namespace detail {
 
 template<class T>
