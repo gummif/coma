@@ -2,8 +2,7 @@
 
 #include <coma/detail/core.hpp>
 #include <coma/detail/wait_ops.hpp>
-#include <coma/acquire_guard.hpp>
-#include <coma/unique_acquire_guard.hpp>
+#include <coma/semaphore_guards.hpp>
 
 #include <boost/asio/basic_waitable_timer.hpp>
 
