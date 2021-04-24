@@ -1,7 +1,7 @@
 #pragma once
 
-#include <utility>
 #include <type_traits>
+#include <utility>
 
 #if defined(_MSVC_LANG)
 #define COMA_CPP_LANG _MSVC_LANG
@@ -54,19 +54,16 @@ struct is_predicate : std::false_type
 };
 
 template<class T>
-struct is_predicate<
-    T,
-    void_t<decltype(std::declval<T>()() == true)>>
-        : std::true_type
+struct is_predicate<T, void_t<decltype(std::declval<T>()() == true)>> : std::true_type
 {
 };
 
 template<class T, class U = T>
 T exchange(T& a, U&& b)
 {
-    auto temp = std::move(a);
-    a = std::forward<U>(b);
-    return temp;
+	auto temp = std::move(a);
+	a = std::forward<U>(b);
+	return temp;
 }
 
 } // namespace detail
