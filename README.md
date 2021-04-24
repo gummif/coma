@@ -13,7 +13,7 @@
 
 Coma is a C++11 header-only library providing asynchronous concurrency primatives based on the asynchronous model of Boost.ASIO. Utilities include RAII guards for semaphores, async semaphores, async condition variables and async thread-safe wrappers and handles.
 
-Coma depends on Boost.ASIO (executors, timers and utilities) and Boost.Beast (initiating function and composed operation utilities only) and familiarity with executors and completion handlers is a prerequisite. An exception is made for the semaphore guards, which only depend on the standard library and can be used without bringing in Boost.
+Coma depends on Boost.ASIO (executors, timers and utilities) and Boost.Beast (initiating function and composed operation utilities only) and familiarity with executors and completion handlers is a prerequisite. Minimum supported Boost version is 1.70. An exception is made for the semaphore guards, which only depend on the standard library and can be used without bringing in Boost.
 
 To integrate it into you project you can add `include` to your include directories, use `add_subdirectory(path/to/coma)` or download it automatically using [FetchContent](https://cmake.org/cmake/help/v3.11/module/FetchContent.html) from your CMake project, or use the Conan package manager (WIP).
 
@@ -134,7 +134,7 @@ private:
 };
 ```
 
-We now make a thread-safe async queue based on the above queue and `coma::async_synchronized`:
+We now make a thread-safe async queue (a go channel if you will) based on the above queue and `coma::async_synchronized`:
 ```c++
 template<class T>
 class async_queue_s
@@ -146,10 +146,9 @@ public:
     net::awaitable<T> async_pop()
     {
         return sq.invoke([](auto& q) { return q.async_pop(); });
-        // NOTE this is the non-coroutine "net::awaitable backwarding" variant of
+        // NOTE this is the non-coroutine "awaitable backwarding" variant of
         // co_return co_await sq.invoke([](auto& q) -> net::awaitable<T> {
         //   co_return co_await q.async_pop(); });
-        // TODO is this safe?
     }
     net::awaitable<std::optional<T>> async_try_pop_for(auto timeout)
     {
