@@ -47,9 +47,9 @@ public:
 struct run_wait_op
 {
 	template<class Handler, class Timer>
-	void operator()(Handler&& h, Timer* t)
+	void operator()(Handler&& h, Timer& t)
 	{
-		wait_op<typename std::decay<Handler>::type, Timer>(std::forward<Handler>(h), *t);
+		wait_op<typename std::decay<Handler>::type, Timer>(std::forward<Handler>(h), t);
 	}
 };
 
@@ -81,10 +81,10 @@ public:
 struct run_wait_pred_op
 {
 	template<class Handler, class Timer, class Predicate>
-	void operator()(Handler&& h, Timer* t, Predicate&& pred)
+	void operator()(Handler&& h, Timer& t, Predicate&& pred)
 	{
 		wait_pred_op<typename std::decay<Handler>::type, Timer,
-					 typename std::decay<Predicate>::type>(std::forward<Handler>(h), *t,
+					 typename std::decay<Predicate>::type>(std::forward<Handler>(h), t,
 														   std::forward<Predicate>(pred));
 	}
 };
