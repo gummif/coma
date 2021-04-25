@@ -86,7 +86,7 @@ public:
 		-> COMA_ASYNC_RETURN_EC
 	{
 		return net::async_initiate<CompletionToken, void(boost::system::error_code)>(
-			detail::run_wait_pred_op{}, token, m_timer, detail::acq_pred{&m_counter});
+			detail::run_wait_pred_op{}, token, &m_timer, detail::acq_pred{&m_counter});
 	}
 
 	template<class CompletionToken = default_token>
@@ -96,7 +96,7 @@ public:
 	{
 		assert(n >= 0);
 		return net::async_initiate<CompletionToken, void(boost::system::error_code)>(
-			detail::run_wait_pred_op{}, token, m_timer, detail::acq_pred_n{&m_counter, n});
+			detail::run_wait_pred_op{}, token, &m_timer, detail::acq_pred_n{&m_counter, n});
 	}
 
 	COMA_NODISCARD bool try_acquire()

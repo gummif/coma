@@ -120,7 +120,7 @@ TEST_CASE("async_cond_var wait many pred", "[async_cond_var]")
 
 using boost::asio::awaitable;
 using boost::asio::use_awaitable;
-using cond_var_coro = boost::asio::use_awaitable_t<>::as_default_on_t<async_cond_var>;
+using cond_var_coro = boost::asio::use_awaitable_t<>::as_default_on_t<coma::async_cond_var<boost::asio::io_context::executor_type>>;
 
 TEST_CASE("async_cond_var coro wait many pred", "[async_cond_var]")
 {

@@ -41,7 +41,7 @@ public:
 		-> COMA_ASYNC_RETURN_EC
 	{
 		return net::async_initiate<CompletionToken, void(boost::system::error_code)>(
-			detail::run_wait_op{}, token, m_timer);
+			detail::run_wait_op{}, token, &m_timer);
 	}
 
 	template<class Predicate, class CompletionToken = default_token,
@@ -50,7 +50,7 @@ public:
 		-> COMA_ASYNC_RETURN_EC
 	{
 		return net::async_initiate<CompletionToken, void(boost::system::error_code)>(
-			detail::run_wait_pred_op{}, token, m_timer, std::forward<Predicate>(pred));
+			detail::run_wait_pred_op{}, token, &m_timer, std::forward<Predicate>(pred));
 	}
 
 	void notify_one() { m_timer.cancel_one(); }

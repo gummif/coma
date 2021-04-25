@@ -3,7 +3,7 @@ name: Linux
 on: [push, pull_request]
 
 jobs:
-  build_gcc10:
+  gcc10_cpp20:
     runs-on: ubuntu-latest
 
     steps:
@@ -12,11 +12,11 @@ jobs:
       run: |
            sudo apt update
            sudo apt install gcc-10 g++-10
-           curl -L https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz --output boost_1_75_0.tar.gz
-           tar -xzf boost_1_75_0.tar.gz
+           curl -L https://dl.bintray.com/boostorg/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
+           tar -xzf boost_1_76_0.tar.gz
       shell: bash
     - name: cmake
-      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_75_0"
+      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_76_0"
       env:
         CC:  gcc-10
         CXX: g++-10
@@ -25,7 +25,7 @@ jobs:
     - name: test
       run: cd build; ctest --output-on-failure
 
-  build_gcc10_cpp11:
+  gcc10_cpp11:
     runs-on: ubuntu-latest
 
     steps:
@@ -34,11 +34,11 @@ jobs:
       run: |
            sudo apt update
            sudo apt install gcc-10 g++-10
-           curl -L https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz --output boost_1_75_0.tar.gz
-           tar -xzf boost_1_75_0.tar.gz
+           curl -L https://dl.bintray.com/boostorg/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
+           tar -xzf boost_1_76_0.tar.gz
       shell: bash
     - name: cmake
-      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=11 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_75_0"
+      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=11 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_76_0"
       env:
         CC:  gcc-10
         CXX: g++-10
@@ -47,7 +47,7 @@ jobs:
     - name: test
       run: cd build; ctest --output-on-failure
 
-  build_clang11:
+  clang11_cpp20:
     runs-on: ubuntu-latest
 
     steps:
@@ -56,11 +56,11 @@ jobs:
       run: |
            sudo apt update
            sudo apt install clang-11
-           curl -L https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.gz --output boost_1_75_0.tar.gz
-           tar -xzf boost_1_75_0.tar.gz
+           curl -L https://dl.bintray.com/boostorg/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
+           tar -xzf boost_1_76_0.tar.gz
       shell: bash
     - name: cmake
-      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_75_0"
+      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=20 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_76_0"
       env:
         CC:  clang-11
         CXX: clang++-11

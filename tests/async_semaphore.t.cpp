@@ -1,5 +1,6 @@
 #include <coma/async_semaphore.hpp>
 #include <test_util.hpp>
+#include <boost/asio/detached.hpp>
 
 #ifdef COMA_HAS_DEFAULT_IO_EXECUTOR
 using async_semaphore = coma::async_semaphore<>;
@@ -13,6 +14,20 @@ static_assert(!std::is_copy_assignable<async_semaphore>::value, "");
 static_assert(!std::is_move_assignable<async_semaphore>::value, "");
 
 TEST_CASE("async_semaphore ctor", "[async_semaphore]")
+{
+	boost::asio::io_context ctx;
+	async_semaphore sem{ctx.get_executor(), 0};
+}
+
+TEST_CASE("async_semaphore as default on detached", "[async_semaphore]")
+{
+    using semaphore_d = boost::asio::detached_t::as_default_on_t<coma::async_semaphore<boost::asio::io_context::executor_type>>;
+	boost::asio::io_context ctx;
+	semaphore_d sem{ctx.get_executor(), 0};
+    sem.async_acquire();
+}
+
+TEST_CASE("async_semaphore try_acquire", "[async_semaphore]")
 {
 	boost::asio::io_context ctx;
 	async_semaphore sem{ctx.get_executor(), 1};
@@ -164,7 +179,7 @@ TEST_CASE("async_semaphore async_acquire_n", "[async_semaphore]")
 
 using boost::asio::awaitable;
 using boost::asio::use_awaitable;
-using semaphore_coro = boost::asio::use_awaitable_t<>::as_default_on_t<async_semaphore>;
+using semaphore_coro = boost::asio::use_awaitable_t<>::as_default_on_t<coma::async_semaphore<boost::asio::io_context::executor_type>>;
 
 TEST_CASE("async_semaphore coro async_acquire many", "[async_semaphore]")
 {
