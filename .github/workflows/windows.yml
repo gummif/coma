@@ -20,3 +20,21 @@ jobs:
       run: cmake --build build  --config Debug --parallel 8
     - name: test
       run: cd build; ctest -C Debug --output-on-failure
+
+  msvc_cpp17:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: install_deps
+      run: |
+           curl -L https://dl.bintray.com/boostorg/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
+           tar -xzf boost_1_76_0.tar.gz
+      shell: bash
+    - name: cmake
+      run: cmake -S . -B build -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_76_0"
+    - name: build
+      run: cmake --build build  --config Debug --parallel 8
+    - name: test
+      run: cd build; ctest -C Debug --output-on-failure
