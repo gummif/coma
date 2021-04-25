@@ -36,7 +36,7 @@ Coma is unit tested with gcc 10.2 (C++11, C++20, address sanitizer, coroutines),
 
 There are a few variant of semaphores and condition variables where there is a tradeoff between the guarantees the types make and completeness of the API versus performance.
 
-| Type                      | Async | TS\* | Timeout |
+| Type                      | Async | Thread-safe | Timeout |
 |---------------------------|-------|-------|------|
 | `std::counting_semaphore` | No | **Yes** | **Yes** |
 | `coma::async_semaphore` | **Yes** | No | No |
@@ -44,14 +44,14 @@ There are a few variant of semaphores and condition variables where there is a t
 | `coma::async_semaphore_s`? | **Yes** | **Yes** | No |
 | `coma::async_semaphore_timed_s` | **Yes** | **Yes** | **Yes** |
 
-| Type                      | Async | TS\* | Timeout | Cancellation | SW\* |
+| Type                      | Async | Thread-safe | Timeout | Cancellation | SW\* |
 |---------------------------|-------|-------|------|------|------|
 | `std::conndition_variable` | No | **Yes** | **Yes** | No | **Yes** |
 | `std::conndition_variable_any` | No | **Yes** | **Yes** | **Yes** | **Yes** |
 | `coma::async_cond_var` | **Yes** | No | No | No | No |
 | `coma::async_cond_var_timed` | **Yes** | No | **Yes** | **Yes** | **Yes** |
 
-\* TS = thread-safe, SW = spurious wakeup
+\* SW = spurious wakeup
 
 ## Examples
 
@@ -109,15 +109,9 @@ public:
     {}
     net::awaitable<T> async_pop()
     {
-        co_await cv.async_wait([&] { return !q.empty(); }));
-        auto item = std::move(q.front());
-        q.pop_front();
-        co_return std::move(item);
-    }
-    net::awaitable<std::optional<T>> async_try_pop_for(auto timeout)
-    {
-        if (!co_await cv.async_wait_for(timeout, [&] { return !q.empty(); })))
-            co_return std::nullopt;
+        co_await cv.async_wait([&] {
+            return !q.empty();
+        }, net::use_awaitable);
         auto item = std::move(q.front());
         q.pop_front();
         co_return std::move(item);
@@ -125,16 +119,15 @@ public:
     void push(T item)
     {
         q.push_back(std::move(item));
+        cv.notify_one();
     }
 private:
-    // NOTE could use the more efficient async_cond_var
-    // if timed waits are not required
-    coma::async_cond_var_timed<> cv;
+    coma::async_cond_var<> cv;
     std::queue<T> q;
 };
 ```
 
-We now make a thread-safe async queue (a go channel if you will) based on the above queue and `coma::async_synchronized`:
+We now make a thread-safe async queue (a go channel if you will) based on the above queue and `coma::async_synchronized` (WIP):
 ```c++
 template<class T>
 class async_queue_s
@@ -145,24 +138,19 @@ public:
     {}
     net::awaitable<T> async_pop()
     {
-        return sq.invoke([](auto& q) { return q.async_pop(); });
+        return sq.invoke([](auto& q) {
+            return q.async_pop();
+        }, net::use_awaitable);
         // NOTE this is the non-coroutine "awaitable backwarding" variant of
         // co_return co_await sq.invoke([](auto& q) -> net::awaitable<T> {
         //   co_return co_await q.async_pop(); });
-    }
-    net::awaitable<std::optional<T>> async_try_pop_for(auto timeout)
-    {
-        return sq.invoke([timeout](auto& q)
-        {
-            return q.async_try_pop_for(timeout);
-        });
     }
     net::awaitable<void> async_push(T item)
     {
         return sq.invoke([item = std::move(item)](auto& q) mutable
         {
             q.push(std::move(item));
-        });
+        }, net::use_awaitable);
     }
 private:
     coma::async_synchronized<async_queue<T>> sq;

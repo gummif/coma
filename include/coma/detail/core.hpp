@@ -42,6 +42,11 @@
 #define COMA_CONSTEXPR_IF
 #endif
 
+// fails on 1.76 with msvc
+#if BOOST_VERSION >= 107400 && !_WIN32
+#define COMA_HAS_AS_DEFAULT_ON
+#endif
+
 namespace coma {
 namespace detail {
 

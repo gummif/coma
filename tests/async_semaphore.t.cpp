@@ -19,6 +19,7 @@ TEST_CASE("async_semaphore ctor", "[async_semaphore]")
 	async_semaphore sem{ctx.get_executor(), 0};
 }
 
+#ifdef COMA_HAS_AS_DEFAULT_ON
 TEST_CASE("async_semaphore as default on detached", "[async_semaphore]")
 {
     using semaphore_d = boost::asio::detached_t::as_default_on_t<coma::async_semaphore<boost::asio::io_context::executor_type>>;
@@ -26,6 +27,7 @@ TEST_CASE("async_semaphore as default on detached", "[async_semaphore]")
 	semaphore_d sem{ctx.get_executor(), 0};
     sem.async_acquire();
 }
+#endif
 
 TEST_CASE("async_semaphore try_acquire", "[async_semaphore]")
 {
@@ -179,18 +181,35 @@ TEST_CASE("async_semaphore async_acquire_n", "[async_semaphore]")
 
 using boost::asio::awaitable;
 using boost::asio::use_awaitable;
-using semaphore_coro = boost::asio::use_awaitable_t<>::as_default_on_t<coma::async_semaphore<boost::asio::io_context::executor_type>>;
+
+#ifdef COMA_HAS_AS_DEFAULT_ON
+TEST_CASE("async_semaphore coro as default on", "[async_semaphore]")
+{
+    using semaphore_coro = boost::asio::use_awaitable_t<>::as_default_on_t<coma::async_semaphore<boost::asio::io_context::executor_type>>;
+
+	boost::asio::io_context ctx;
+	semaphore_coro sem{ctx.get_executor(), 1};
+
+	boost::asio::co_spawn(
+		ctx,
+		[&]() -> awaitable<void> {
+			co_await sem.async_acquire();
+		},
+		boost::asio::detached);
+	ctx.run();
+}
+#endif
 
 TEST_CASE("async_semaphore coro async_acquire many", "[async_semaphore]")
 {
 	boost::asio::io_context ctx;
-	semaphore_coro sem{ctx.get_executor(), 0};
+	async_semaphore sem{ctx.get_executor(), 0};
 
 	int done = 0;
 	boost::asio::co_spawn(
 		ctx,
 		[&]() -> awaitable<void> {
-			co_await sem.async_acquire();
+			co_await sem.async_acquire(use_awaitable);
 			++done;
 		},
 		boost::asio::detached);
