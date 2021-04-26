@@ -47,6 +47,33 @@ TEST_CASE("async_cond_var wait", "[async_cond_var]")
 	CHECK(done == 1);
 }
 
+TEST_CASE("async_cond_var wait race condition", "[async_cond_var]")
+{
+	boost::asio::io_context ctx;
+	async_cond_var cv{ctx.get_executor()};
+
+	int val = 0;
+	int val_in_pred = 0;
+
+	boost::asio::post(ctx, [&] {
+		boost::asio::post(ctx, [&] { ++val; });
+		CHECK(val == 0);
+		// verify that initially true pred will also be
+		// true inside handler
+		cv.async_wait([&] {
+				val_in_pred = val;
+				return true;
+			},
+			[&](boost::system::error_code ec) {
+				CHECK(!ec);
+				CHECK(val == val_in_pred);
+				++val;
+			});
+	});
+	ctx.run();
+	CHECK(val == 2);
+}
+
 TEST_CASE("async_cond_var wait many fifo", "[async_cond_var]")
 {
 	boost::asio::io_context ctx;

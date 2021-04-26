@@ -64,15 +64,17 @@ public:
 		: base_wait_op<Handler, Timer>(std::forward<H>(h), tp)
 		, pred{std::forward<P>(p)}
 	{
-		(*this)(boost::system::error_code{}, false);
+		// must be posted such that there is no suspension point
+		// between pred() and calling the completion handler
+		net::post(net::bind_executor(this->get_executor(), std::move(*this)));
 	}
 
-	void operator()(boost::system::error_code ec, bool continuation = true)
+	void operator()(boost::system::error_code ec = boost::system::error_code{})
 	{
 		if (ec == net::error::operation_aborted)
 			ec = {};
 		if (ec || pred())
-			this->complete(continuation, ec);
+			this->complete_now(ec);
 		else
 			this->timer.async_wait(std::move(*this));
 	}

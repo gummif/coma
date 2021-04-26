@@ -55,7 +55,7 @@ class async_semaphore
 {
 	using clock = std::chrono::steady_clock;
 	using timer = net::basic_waitable_timer<clock, net::wait_traits<clock>, Executor>;
-	using default_token = net::default_completion_token_t<Executor>;
+	using default_token = typename net::default_completion_token<Executor>::type;
 
 public:
 	using executor_type = Executor;
