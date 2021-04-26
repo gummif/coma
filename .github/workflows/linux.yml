@@ -47,7 +47,7 @@ jobs:
     - name: test
       run: cd build; ctest --output-on-failure
 
-  gcc10_cpp11_boost170:
+  gcc10_cpp11_boost172:
     runs-on: ubuntu-latest
 
     steps:
@@ -56,11 +56,11 @@ jobs:
       run: |
            sudo apt update
            sudo apt install gcc-10 g++-10
-           curl -L https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz --output boost_1_70_0.tar.gz
-           tar -xzf boost_1_70_0.tar.gz
+           curl -L https://boostorg.jfrog.io/artifactory/main/release/1.72.0/source/boost_1_72_0.tar.gz --output boost_1_72_0.tar.gz
+           tar -xzf boost_1_72_0.tar.gz
       shell: bash
     - name: cmake
-      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=11 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_70_0"
+      run: cmake -S . -B build -D CMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=11 -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCOMA_ENABLE_TESTS=1 -DCOMA_TESTS_BOOST_INC_DIR="$PWD/boost_1_72_0"
       env:
         CC:  gcc-10
         CXX: g++-10

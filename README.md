@@ -13,7 +13,7 @@
 
 Coma is a C++11 header-only library providing asynchronous concurrency primatives based on the asynchronous model of Boost.ASIO. Utilities include RAII guards for semaphores, async semaphores, async condition variables and async thread-safe wrappers and handles.
 
-Coma depends on Boost.ASIO (executors, timers and utilities) and Boost.Beast (initiating function and composed operation utilities only) and familiarity with executors and completion handlers is a prerequisite. Minimum supported Boost version is 1.70. An exception is made for the semaphore guards, which only depend on the standard library and can be used without bringing in Boost.
+Coma depends on Boost.ASIO (executors, timers and utilities) and Boost.Beast (initiating function and composed operation utilities only) and familiarity with executors and completion handlers is a prerequisite. Minimum supported Boost version is 1.72. An exception is made for the semaphore guards, which only depend on the standard library and can be used without bringing in Boost.
 
 To integrate it into you project you can add `include` to your include directories, use `add_subdirectory(path/to/coma)` or download it automatically using [FetchContent](https://cmake.org/cmake/help/v3.11/module/FetchContent.html) from your CMake project, or use the Conan package manager (WIP).
 
@@ -30,7 +30,13 @@ And currently experimental or work in progress:
 * `coma::async_synchronized` thread-safe async wrapper of values through a strand (similar to proposed `std::synchronized_value`).
 * `coma::co_lift` a higher-order function to lift regular functions `R()` into `awaitable<R>()`.
 
-Coma is unit tested with gcc 10.2 (C++11, C++20, address sanitizer, coroutines), clang 11.0 (C++20, address sanitizer) and MSVC 16.9 (C++20).
+Coma is tested with:
+* GCC 10.2 (C++20, address sanitizer, coroutines, Boost 1.76)
+* GCC 10.2 (C++11, address sanitizer, Boost 1.76)
+* GCC 10.2 (C++11, address sanitizer, Boost 1.72)
+* Clang 11.0 (C++20, address sanitizer, Boost 1.76)
+* MSVC 16.9 (C++20, Boost 1.76).
+* MSVC 16.9 (C++17, Boost 1.76).
 
 ## Overview and comparison
 

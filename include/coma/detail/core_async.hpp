@@ -19,6 +19,11 @@
 #define COMA_SET_DEFAULT_IO_EXECUTOR // no default pre Boost 1.74
 #endif
 
+// fails on 1.76 with msvc
+#if BOOST_VERSION >= 107400 && !_WIN32
+#define COMA_HAS_AS_DEFAULT_ON
+#endif
+
 namespace boost {
 namespace asio {
 }
