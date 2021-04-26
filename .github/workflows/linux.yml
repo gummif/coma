@@ -12,7 +12,7 @@ jobs:
       run: |
            sudo apt update
            sudo apt install gcc-10 g++-10
-           curl -L https://dl.bintray.com/boostorg/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
+           curl -L https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
            tar -xzf boost_1_76_0.tar.gz
       shell: bash
     - name: cmake
@@ -34,7 +34,7 @@ jobs:
       run: |
            sudo apt update
            sudo apt install gcc-10 g++-10
-           curl -L https://dl.bintray.com/boostorg/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
+           curl -L https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
            tar -xzf boost_1_76_0.tar.gz
       shell: bash
     - name: cmake
@@ -56,7 +56,7 @@ jobs:
       run: |
            sudo apt update
            sudo apt install gcc-10 g++-10
-           curl -L https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz --output boost_1_70_0.tar.gz
+           curl -L https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz --output boost_1_70_0.tar.gz
            tar -xzf boost_1_70_0.tar.gz
       shell: bash
     - name: cmake
@@ -78,7 +78,7 @@ jobs:
       run: |
            sudo apt update
            sudo apt install clang-11
-           curl -L https://dl.bintray.com/boostorg/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
+           curl -L https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
            tar -xzf boost_1_76_0.tar.gz
       shell: bash
     - name: cmake

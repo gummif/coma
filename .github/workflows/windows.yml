@@ -11,7 +11,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - name: install_deps
       run: |
-           curl -L https://dl.bintray.com/boostorg/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
+           curl -L https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
            tar -xzf boost_1_76_0.tar.gz
       shell: bash
     - name: cmake
@@ -29,7 +29,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - name: install_deps
       run: |
-           curl -L https://dl.bintray.com/boostorg/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
+           curl -L https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz --output boost_1_76_0.tar.gz
            tar -xzf boost_1_76_0.tar.gz
       shell: bash
     - name: cmake
