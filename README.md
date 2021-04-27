@@ -11,9 +11,9 @@
 
 # Introduction
 
-Coma is a C++11 header-only library providing asynchronous concurrency primatives based on the asynchronous model of Boost.ASIO. Utilities include RAII guards for semaphores, async semaphores, async condition variables and async thread-safe wrappers and handles.
+Coma is a C++11 header-only library providing asynchronous concurrency primatives, based on the asynchronous model of [Boost.ASIO](https://www.boost.org/doc/libs/1_76_0/doc/html/boost_asio.html) (and proposed [standard executors](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p0443r14.html)). Utilities include RAII guards for semaphores, async semaphores and async condition variables.
 
-Coma depends on Boost.ASIO (executors, timers and utilities) and Boost.Beast (initiating function and composed operation utilities only) and familiarity with executors and completion handlers is a prerequisite. Minimum supported Boost version is 1.72. An exception is made for the semaphore guards, which only depend on the standard library and can be used without bringing in Boost.
+Coma depends on Boost.ASIO (executors, timers and utilities) and Boost.Beast (initiating function and composed operation utilities) and familiarity with executors and completion handlers/tokens is a prerequisite. Minimum supported Boost version is 1.72. An exception is made for the semaphore guards, which only depend on the standard library and can be used without bringing in Boost.
 
 To integrate it into you project you can add `include` to your include directories, use `add_subdirectory(path/to/coma)` or download it automatically using [FetchContent](https://cmake.org/cmake/help/v3.11/module/FetchContent.html) from your CMake project, or use the Conan package manager (WIP).
 
@@ -24,11 +24,10 @@ The library provides:
 * `coma::acquire_guard` equivalent to `std::lock_guard` for semaphores using acquire/release instead of lock/unlock.
 * `coma::unique_acquire_guard` equivalent to `std::unique_lock` for semaphores using acquire/release instead of lock/unlock.
 
-And currently experimental or work in progress:
+Experimental or work in progress:
 * `coma::async_semaphore_timed` with timed functions.
-* `coma::async_cond_var_timed` with timed functions, cancellation.
+* `coma::async_cond_var_timed` with timed functions and cancellation.
 * `coma::async_synchronized` thread-safe async wrapper of values through a strand (similar to proposed `std::synchronized_value`).
-* `coma::co_lift` a higher-order function to lift regular functions `R()` into `awaitable<R>()`.
 
 Coma is tested with:
 * GCC 10.2 (C++20, address sanitizer, coroutines, Boost 1.76)
@@ -42,15 +41,15 @@ Coma is tested with:
 
 There are a few variant of semaphores and condition variables where there is a tradeoff between the guarantees the types make and completeness of the API versus performance.
 
-| Type                      | Async | Thread-safe | Timeout |
+| Semaphore                 | Async | Thread-safe | Timeout |
 |---------------------------|-------|-------|------|
 | `std::counting_semaphore` | No | **Yes** | **Yes** |
 | `coma::async_semaphore` | **Yes** | No | No |
 | `coma::async_semaphore_timed` | **Yes** | No | **Yes** |
-| `coma::async_semaphore_s`? | **Yes** | **Yes** | No |
+| `coma::async_semaphore_s` | **Yes** | **Yes** | No |
 | `coma::async_semaphore_timed_s` | **Yes** | **Yes** | **Yes** |
 
-| Type                      | Async | Thread-safe | Timeout | Cancellation | SW\* |
+| Condition variable        | Async | Thread-safe | Timeout | Cancellation | SW\* |
 |---------------------------|-------|-------|------|------|------|
 | `std::conndition_variable` | No | **Yes** | **Yes** | No | **Yes** |
 | `std::conndition_variable_any` | No | **Yes** | **Yes** | **Yes** | **Yes** |
@@ -60,8 +59,31 @@ There are a few variant of semaphores and condition variables where there is a t
 \* SW = spurious wakeup
 
 ## Examples
+The examples use coroutines with `awaitable` for simplicity, but the library supports any valid completion token (such as callbacks).
 
-Using async semaphore as a lightweight async latch between two threads. This example spawns a new thread to execute some heavy task without blocking the current executor/execution context. Using `async_acquire_n` to synchronize the completion of multiple task is left as an excercise. The examples use coroutines with `awaitable` for simplicity, but the library supports any valid completion token (such as callbacks).
+Limiting number of resources in use with a semaphore:
+
+```c++
+net::awaitable<void> handle(tcp_socket socket,
+                            coma::unique_acquire_guard guard);
+// assuming single a threaded execution
+net::awaitable<void> listen(tcp_listener listener,
+                            coma::async_semaphore& sem)
+{
+    while (true)
+    {
+        co_await sem.async_acquire(net::use_awaitable);
+        coma::unique_acquire_guard guard{sem, coma::adapt_acquire};
+
+        auto socket = listener.async_listen(net::use_awaitable);
+        net::co_spawn(co_await net::this_coro::executor,
+                      handle(std::move(socket), std::move(g)),
+                      net::detached);
+    }
+}
+```
+
+Using async semaphore as a lightweight async latch between two threads. This example spawns a new thread to execute some heavy task without blocking the current executor/execution context. Using `async_acquire_n` to synchronize the completion of multiple task is left as an excercise. 
 
 ```c++
 // execute f on a new thread without blocking current executor

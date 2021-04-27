@@ -1,4 +1,4 @@
-#include <coma/stranded.hpp>
+#include <coma/experimental/stranded.hpp>
 #include <test_util.hpp>
 #include <vector>
 #if defined(COMA_COROUTINES) && defined(COMA_ENABLE_COROUTINE_TESTS)
