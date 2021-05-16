@@ -1,4 +1,4 @@
-#include <coma/experimental/async_cond_var_timed.hpp>
+#include <coma/async_cond_var_timed.hpp>
 #include <test_util.hpp>
 #include <boost/asio/strand.hpp>
 
