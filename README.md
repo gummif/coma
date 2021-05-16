@@ -68,18 +68,18 @@ Hello world:
 int main()
 {
     net::io_context ctx;
-	coma::async_cond_var cv{ctx.get_executor()};
+    coma::async_cond_var cv{ctx.get_executor()};
 
-	bool done = false;
-	cv.async_wait([&] { return done; },
+    bool done = false;
+    cv.async_wait([&] { return done; },
         [&](boost::system::error_code ec) {
             puts("Hello world!");
         });
-	net::post(ctx, [&] {
+    net::post(ctx, [&] {
         done = true;
         cv.notify_one();
     });
-	ctx.run();
+    ctx.run();
 }
 ```
 

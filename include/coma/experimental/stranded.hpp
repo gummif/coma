@@ -8,7 +8,7 @@
 #include <boost/asio/strand.hpp>
 #include <boost/asio/use_awaitable.hpp>
 #include <cassert>
-#include <coma/co_lift.hpp>
+#include <coma/experimental/co_lift.hpp>
 #include <functional>
 #include <utility>
 
