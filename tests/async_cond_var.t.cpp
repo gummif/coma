@@ -1,5 +1,4 @@
 #include <coma/async_cond_var.hpp>
-#include <coma/co_lift.hpp>
 #include <test_util.hpp>
 
 #ifdef COMA_HAS_DEFAULT_IO_EXECUTOR
@@ -146,6 +145,8 @@ TEST_CASE("async_cond_var wait many pred", "[async_cond_var]")
 	ctx.poll();
 	CHECK(done == 0);
 
+	CHECK(coma::run_would_block(ctx));
+
 	done = 1;
 	cv.notify_all();
 
@@ -204,15 +205,14 @@ TEST_CASE("async_cond_var coro wait many pred", "[async_cond_var]")
 		},
 		boost::asio::detached);
 
-	boost::asio::co_spawn(ctx, coma::co_lift([&] { cv.notify_all(); }), boost::asio::detached);
+	boost::asio::post(ctx, [&] { cv.notify_all(); });
 	ctx.poll();
 	CHECK(done == 0);
 
-	boost::asio::co_spawn(ctx, coma::co_lift([&] {
-							  done = 1;
-							  cv.notify_all();
-						  }),
-						  boost::asio::detached);
+	boost::asio::post(ctx, [&] {
+		done = 1;
+		cv.notify_all();
+	});
 
 	ctx.run();
 	CHECK(done == 3);

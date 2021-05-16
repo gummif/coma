@@ -53,6 +53,8 @@ struct acq_pred_n
 template<class Executor COMA_SET_DEFAULT_IO_EXECUTOR>
 class async_semaphore
 {
+	// TODO try implementing without a timer, since we can
+	// never timeout, using a list of handlers functions
 	using clock = std::chrono::steady_clock;
 	using timer = net::basic_waitable_timer<clock, net::wait_traits<clock>, Executor>;
 	using default_token = typename net::default_completion_token<Executor>::type;

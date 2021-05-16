@@ -46,9 +46,11 @@ function(coma_add_test TESTNAME)
      CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.0)
     target_compile_options(test_${TESTNAME} PRIVATE
       -fsanitize=address
+      #-fsanitize=undefined
       -fno-omit-frame-pointer)
     target_link_options(test_${TESTNAME} PRIVATE
       -fsanitize=address
+      #-fsanitize=undefined
       -fno-omit-frame-pointer)
   endif()
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.2)
@@ -60,8 +62,8 @@ endfunction()
 
 coma_add_test(acquire_guard)
 coma_add_test(unique_acquire_guard)
-coma_add_test(async_cond_var)
 coma_add_test(async_semaphore)
-coma_add_test(async_timed_cond_var)
+coma_add_test(async_cond_var)
+coma_add_test(async_cond_var_timed)
 coma_add_test(stranded)
 coma_add_test(co_lift)

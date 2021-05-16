@@ -11,6 +11,9 @@
 #define COMA_ASYNC_RETURN_EC                                                                  \
 	typename net::async_result<typename std::decay<CompletionToken>::type,                    \
 							   void(boost::system::error_code)>::return_type
+#define COMA_ASYNC_RETURN_EC_AND(X)                                                           \
+	typename net::async_result<typename std::decay<CompletionToken>::type,                    \
+							   void(boost::system::error_code, X)>::return_type
 
 #if BOOST_VERSION >= 107400
 #define COMA_HAS_DEFAULT_IO_EXECUTOR

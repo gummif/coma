@@ -66,5 +66,16 @@ T exchange(T& a, U&& b)
 	return temp;
 }
 
+template<class F>
+struct at_scope_exit
+{
+	F f;
+	at_scope_exit(F&& g)
+		: f{std::move(g)}
+	{
+	}
+	~at_scope_exit() noexcept { f(); }
+};
+
 } // namespace detail
 } // namespace coma

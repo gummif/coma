@@ -65,8 +65,8 @@ public:
 		, pred{std::forward<P>(p)}
 	{
 		// must be posted such that there is no suspension point
-		// between pred() and calling the completion handler
-		net::post(net::bind_executor(this->get_executor(), std::move(*this)));
+		// between pred() == true and calling the completion handler
+		net::post(std::move(*this));
 	}
 
 	void operator()(boost::system::error_code ec = boost::system::error_code{})

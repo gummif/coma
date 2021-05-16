@@ -21,6 +21,15 @@ using defclock = std::chrono::steady_clock;
 
 namespace coma {
 
+// care must be taken to restart the context
+// before/after this call as needed
+bool run_would_block(boost::asio::io_context& ctx)
+{
+	auto end = std::chrono::steady_clock::now() + std::chrono::milliseconds{5};
+	ctx.run_until(end);
+	return std::chrono::steady_clock::now() >= end;
+}
+
 struct logged
 {
 	logged() noexcept { TEST_LOG("logged ctor"); }

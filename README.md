@@ -4,8 +4,10 @@
 
 
 - [Introduction](#introduction)
-- [Overview and comparison](#overview-and-comparison)
+- [Overview](#overview)
+- [Design](#design)
 - [Examples](#examples)
+- [Gotchas](#gotchas)
 - [Synopsis](#synopsis)
 - [Nomenclature](#nomenclature)
 
@@ -21,12 +23,13 @@ The library provides:
 
 * `coma::async_semaphore` lightweight async semaphore, _not_ thread-safe, no additional synchronization, atomics or reference counting. With FIFO ordering of waiting tasks.
 * `coma::async_cond_var` lightweight async condition variable, _not_ thread-safe, no additional synchronization, atomics or reference counting. With FIFO ordering of waiting tasks and without spurious wakening.
+* `coma::async_cond_var_timed` lightweight async condition variable, _not_ thread-safe, with support for timed waits and cancellation. With FIFO ordering of waiting tasks. May experience spurious wakening.
 * `coma::acquire_guard` equivalent to `std::lock_guard` for semaphores using acquire/release instead of lock/unlock.
 * `coma::unique_acquire_guard` equivalent to `std::unique_lock` for semaphores using acquire/release instead of lock/unlock.
 
-Experimental or work in progress:
-* `coma::async_semaphore_timed` with timed functions.
-* `coma::async_cond_var_timed` with timed functions and cancellation.
+Work in progress:
+* `coma::async_semaphore_timed` with timed functions and cancellation.
+* `coma::async_semaphore_timed_s` synchronized variant.
 * `coma::async_synchronized` thread-safe async wrapper of values through a strand (similar to proposed `std::synchronized_value`).
 
 Coma is tested with:
@@ -37,7 +40,7 @@ Coma is tested with:
 * MSVC 16.9 (C++20, Boost 1.76).
 * MSVC 16.9 (C++17, Boost 1.76).
 
-## Overview and comparison
+## Overview
 
 There are a few variant of semaphores and condition variables where there is a tradeoff between the guarantees the types make and completeness of the API versus performance.
 
@@ -45,9 +48,8 @@ There are a few variant of semaphores and condition variables where there is a t
 |---------------------------|-------|-------|------|
 | `std::counting_semaphore` | No | **Yes** | **Yes** |
 | `coma::async_semaphore` | **Yes** | No | No |
-| `coma::async_semaphore_timed` | **Yes** | No | **Yes** |
-| `coma::async_semaphore_s` | **Yes** | **Yes** | No |
-| `coma::async_semaphore_timed_s` | **Yes** | **Yes** | **Yes** |
+| `coma::async_semaphore_timed` (WIP) | **Yes** | No | **Yes** |
+| `coma::async_semaphore_timed_s` (WIP) | **Yes** | **Yes** | **Yes** |
 
 | Condition variable        | Async | Thread-safe | Timeout | Cancellation | SW\* |
 |---------------------------|-------|-------|------|------|------|
@@ -59,26 +61,48 @@ There are a few variant of semaphores and condition variables where there is a t
 \* SW = spurious wakeup
 
 ## Examples
-The examples use coroutines with `awaitable` for simplicity, but the library supports any valid completion token (such as callbacks).
+Most of the examples use coroutines with `awaitable` for simplicity, but the library supports any valid completion token (such as callbacks). The examples will use the alias `net` for `boost::asio`.
+
+Hello world:
+```c++
+int main()
+{
+    net::io_context ctx;
+	coma::async_cond_var cv{ctx.get_executor()};
+
+	bool done = false;
+	cv.async_wait([&] { return done; },
+        [&](boost::system::error_code ec) {
+            puts("Hello world!");
+        });
+	net::post(ctx, [&] {
+        done = true;
+        cv.notify_one();
+    });
+	ctx.run();
+}
+```
 
 Limiting number of resources in use with a semaphore:
-
 ```c++
-net::awaitable<void> handle(tcp_socket socket,
-                            coma::unique_acquire_guard guard);
-// assuming single a threaded execution
+net::awaitable<void>
+handle_connection(tcp_socket socket,
+                  coma::async_acquire_guard guard);
 net::awaitable<void> listen(tcp_listener listener,
-                            coma::async_semaphore& sem)
+                            coma::async_semaphore_timed_s sem)
 {
     while (true)
     {
         co_await sem.async_acquire(net::use_awaitable);
-        coma::unique_acquire_guard guard{sem, coma::adapt_acquire};
+        coma::async_acquire_guard guard{sem, coma::adapt_acquire};
 
         auto socket = listener.async_listen(net::use_awaitable);
+        // note: unstructured concurrency, that's why
+        // we need a synchronized semaphore and
+        // async_acquire_guard for this to be safe
         net::co_spawn(co_await net::this_coro::executor,
-                      handle(std::move(socket), std::move(g)),
-                      net::detached);
+            handle_connection(std::move(socket), std::move(g)),
+            net::detached);
     }
 }
 ```
@@ -86,14 +110,17 @@ net::awaitable<void> listen(tcp_listener listener,
 Using async semaphore as a lightweight async latch between two threads. This example spawns a new thread to execute some heavy task without blocking the current executor/execution context. Using `async_acquire_n` to synchronize the completion of multiple task is left as an excercise. 
 
 ```c++
-// execute f on a new thread without blocking current executor
+// execute f on in new thread without blocking current executor
 template<class F, class R = decltype(f())>
 auto co_spawn_thread(F f) -> net::awaitable<R>
 {
     coma::async_semaphore_s sem{co_await net::this_coro::executor, 0};
     R ret;
     std::exception_ptr e;
-    std::thread([&]() noexcept {
+    // if we use jthread then the shared state can
+    // live on the stack, otherwise we would need to
+    // store it in a shared_ptr
+    std::jthread t([&]() noexcept {
         // release at scope exit
         coma::acquire_guard g{sem, coma::adapt_acquire};
         try
@@ -104,7 +131,7 @@ auto co_spawn_thread(F f) -> net::awaitable<R>
         {
             e = std::current_exception();
         }
-    }).detach();
+    });
     
     // non-blocking wait for thread to finish
     co_await sem.async_acquire(net::use_awaitable);
@@ -132,7 +159,7 @@ template<class T>
 class async_queue
 {
 public:
-    using executor_type = typename coma::async_cond_var_timed<>::executor_type;
+    using executor_type = typename coma::async_cond_var<>::executor_type;
     explicit async_queue(const executor_type& ex) : cv{ex}
     {}
     net::awaitable<T> async_pop()
@@ -185,20 +212,44 @@ private:
 };
 ```
 
-Async condition variable with timeout and cancellation support via `std::stop_token` and `std::stop_source`.
-```c++
-coma::async_timed_cond_var cv;
-bool set;
-int answer;
+## Design
 
-net::awaitable<int> f(std::stop_token st)
+The non-thread-safe/unsynchronized types are designed efficient use in single threaded (or externally synchronized context e.g. via a strand). If you are unsure which variant to use in your program then the synchronized variants (`*_s`) are a good choise (since they are both thread-safe and atomically reference counted). Also note that the semaphore guards can be dangerous if ways that is not structured concurrency (see Gotchas section below). Be espepecially careful when using `detached` or `execute`/`post` without reference counting.
+
+## Gotchas
+
+There are many ways to shoot yourself in the foot with the unsynchronized variants:
+```c++
+void BAD()
 {
-    if (co_await cv.async_wait_for(1s, [&] { return set; }, st))
-        co_return answer;
-    else if (st.stop_requested())
-        throw std::runtime_error("cancelled");
-    else
-        throw std::runtime_error("timeout");
+    net::io_context ctx;
+    coma::async_semaphore sem{ctx.get_executor(), 1};
+    net::co_spawn(ctx, [&]() -> net::awaitable<void>
+    {
+        co_await sem.async_acquire(net::use_awaitabke);
+        coma::acquire_guard g{sem, coma::adapt_lock};
+        co_await some_async_op();
+    }, net::detached);
+    // ... setup to stop ctx on interrupt
+    ctx.run();
+    // sem may be destructed before the destructor
+    // for the spawned task runs resulting in
+    // use after free in ~acquire_guard()
+}
+
+void OK()
+{
+    net::io_context ctx;
+    net::co_spawn(ctx, []() -> net::awaitable<void>
+    {
+        // OK structured concurrency within this task
+        coma::async_semaphore sem{ctx.get_executor(), 1};
+        co_await sem.async_acquire(net::use_awaitabke);
+        coma::acquire_guard g{sem, coma::adapt_lock};
+        co_await some_async_op();
+    }, net::detached);
+    // ... setup to stop ctx on interrupt
+    ctx.run();
 }
 ```
 
@@ -206,14 +257,20 @@ net::awaitable<int> f(std::stop_token st)
 
 In header `<coma/async_semaphore.hpp>`
 ```c++
-template<class Executor COMA_SET_DEFAULT_IO_EXECUTOR>
+template<class Executor>
 class async_semaphore;
 ```
 
 In header `<coma/async_cond_var.hpp>`
 ```c++
-template<class Executor COMA_SET_DEFAULT_IO_EXECUTOR>
+template<class Executor>
 class async_cond_var;
+```
+
+In header `<coma/async_cond_var_timed.hpp>`
+```c++
+template<class Executor>
+class async_cond_var_timed;
 ```
 
 In header `<coma/semaphore_guards.hpp>`
