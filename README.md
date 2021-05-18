@@ -215,7 +215,7 @@ private:
 
 ## Design
 
-The non-thread-safe/unsynchronized types are designed efficient use in single threaded (or externally synchronized context e.g. via a strand). If you are unsure which variant to use in your program then the synchronized variants (`*_s`) are a good choise (since they are both thread-safe and atomically reference counted). Also note that the semaphore guards can be dangerous if ways that is not structured concurrency (see Gotchas section below). Be espepecially careful when using `detached` or `execute`/`post` without reference counting.
+The non-thread-safe/unsynchronized types are designed efficient use in single threaded (or externally synchronized context e.g. via a strand). If you are unsure which variant to use in your program then the synchronized variants (`*_s`) are a good choise (since they are both thread-safe and atomically reference counted). Also note that the semaphore guards can be dangerous if used ina a non-structured concurrency manner (see Gotchas section below). Be espepecially careful when using `detached` or `execute`/`post` without reference counting.
 
 ## Gotchas
 
