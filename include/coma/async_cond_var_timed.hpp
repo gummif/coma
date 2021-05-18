@@ -28,6 +28,15 @@ struct cv_timed_impl
 	std::shared_ptr<std::vector<time_point>> time_points{std::make_shared<std::vector<time_point>>()};
 	bool stopped{false};
 
+	explicit cv_timed_impl(const executor_type& ex)
+		: timer{ex, timer_type::time_point::max()}
+	{
+	}
+	explicit cv_timed_impl(executor_type&& ex)
+		: timer{std::move(ex), timer_type::time_point::max()}
+	{
+	}
+
 	void add_time_point(time_point endtime)
 	{
 		static_assert(std::is_trivially_copyable<time_point>::value, "");
@@ -85,11 +94,11 @@ public:
 	};
 
 	explicit async_cond_var_timed(const executor_type& ex)
-		: m_impl{timer{ex, timer::time_point::max()}}
+		: m_impl{ex}
 	{
 	}
 	explicit async_cond_var_timed(executor_type&& ex)
-		: m_impl{timer{std::move(ex), timer::time_point::max()}}
+		: m_impl{std::move(ex)}
 	{
 	}
 	~async_cond_var_timed() noexcept = default;
