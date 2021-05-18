@@ -72,8 +72,8 @@ int main()
 
     bool done = false;
     cv.async_wait([&] { return done; },
-        [&](boost::system::error_code ec, bool b) {
-            assert(!ec && b);
+        [&](boost::system::error_code ec) {
+            assert(!ec);
             puts("Hello world!");
         });
     net::post(ctx, [&] {

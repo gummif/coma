@@ -85,11 +85,11 @@ public:
 	};
 
 	explicit async_cond_var_timed(const executor_type& ex)
-		: m_impl{{ex, timer::time_point::max()}}
+		: m_impl{timer{ex, timer::time_point::max()}}
 	{
 	}
 	explicit async_cond_var_timed(executor_type&& ex)
-		: m_impl{{std::move(ex), timer::time_point::max()}}
+		: m_impl{timer{std::move(ex), timer::time_point::max()}}
 	{
 	}
 	~async_cond_var_timed() noexcept = default;
